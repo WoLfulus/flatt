@@ -1,0 +1,11 @@
+# we still need flatc.exe, ignore only flatt from bin
+bin/win-x64/flatt.exe
+
+.vscode
+node_modules
+.sconsign.dblite
+temp
+build
+dist
+
+/flatt-*.tgz

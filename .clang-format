@@ -1,0 +1,14 @@
+BasedOnStyle: Microsoft
+AlignAfterOpenBracket: AlwaysBreak
+ContinuationIndentWidth: 2
+DerivePointerAlignment: true
+IndentWidth: 2
+NamespaceIndentation: Inner
+Cpp11BracedListStyle: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterNamespace: false
+BreakConstructorInitializersBeforeComma: true
+SortIncludes: false
+AlwaysBreakTemplateDeclarations: Yes
+#SeparateDefinitionBlocks: Always

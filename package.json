@@ -1,0 +1,41 @@
+{
+  "name": "flatt",
+  "version": "0.0.1",
+  "description": "Flatbuffers code generator from templates.",
+  "keywords": [
+    "flatbuffers",
+    "jinja",
+    "template",
+    "code-generation",
+    "codegen",
+    "c++",
+    "lua"
+  ],
+  "homepage": "https://github.com/WoLfulus/flatt#readme",
+  "author": "WoLfulus <wolfulus@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/WoLfulus/flatt/issues",
+    "email": "wolfulus+npm@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WoLfulus/flatt.git"
+  },
+  "bin": {
+    "flatt": "./bin/flatt.js"
+  },
+  "scripts": {
+    "build": "npm run build:release",
+    "build:debug": "zx ./scripts/build.mjs --type=debug",
+    "build:release": "zx ./scripts/build.mjs --type=release",
+    "publish:local": "npm uninstall -g flatt && npm link"
+  },
+  "dependencies": {
+    "execa": "^6.1.0"
+  },
+  "devDependencies": {
+    "yargs": "^17.3.1",
+    "zx": "^5.2.0"
+  }
+}
