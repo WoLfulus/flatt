@@ -25,6 +25,11 @@
   "bin": {
     "flatt": "./bin/flatt.js"
   },
+  "files": [
+    "bin/**/*",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "npm run build:release",
     "build:debug": "zx ./scripts/build.mjs --type=debug",
