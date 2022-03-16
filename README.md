@@ -2,17 +2,20 @@
 
 Flatbuffers ~code~ reflection based generation tool with scripting support.
 
-# Overview
+# Why?
 
-Flatbuffers is awesome, but you'll eventually need (or want) to write additional code generation steps for your schema files. For example, generating a network protocol handler/dispatcher.
+Flatbuffers is awesome, but you'll eventually need to (or wish you could) write additional code generation steps for your schema files. For example, generating a network protocol handler/dispatcher for you client and server and keep them in sync.
 
-`flatt` is just a Lua runtime with some builtin functions to help dealing with Flatbuffers files and template rendering. You can use `flatt` to generate code, fetch type information and render additional files with that data using a template engine.
+# How does it work?
 
-All lua libraries are exported and you can use `luarocks` packages with it if you want, so there's no limit on what you can do with it.
+`flatt` exposes a `lua` runtime with some additional helper functions to help you deal with Flatbuffers schema files, reflection and template rendering. You can for example write a `flatt` script that will reflect your schema, manipulate that data, and render (using a template engine or not) a file with the content you just processed.
+
+All builtin lua libraries are exported and you can use `luarocks` packages with it if you want to.
 
 > An example of what a flatt script looks like:
 
 ```lua
+-- luarocks install lunajson
 local lunajson = require("lunajson")
 
 flatt.log.info("Generating headers...")
@@ -46,7 +49,7 @@ flatt.log.trace(json)
 
 local info = lunajson.decode(json)
 
--- generate template with `info`
+-- generate a file using `info` data
 
 ```
 
@@ -62,7 +65,7 @@ local info = lunajson.decode(json)
 
 ## Overview
 
-> `flatt some_project.lua`
+> `flatt some/project.lua`
 
 ##
 

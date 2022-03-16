@@ -2,7 +2,7 @@ namespace my.protocol;
 
 attribute "packet";
 
-enum AccountStatus : uint8 {
+enum AccountStatus : ubyte {
   Active,
   Unconfirmed,
   Blocked,

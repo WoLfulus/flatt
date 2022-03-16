@@ -1,7 +1,7 @@
 {
   "name": "flatt",
-  "version": "0.0.1",
-  "description": "Flatbuffers code generator from templates.",
+  "version": "0.0.5",
+  "description": "Flatbuffers scriptable code generation tool.",
   "keywords": [
     "flatbuffers",
     "jinja",
@@ -34,7 +34,8 @@
     "build": "npm run build:release",
     "build:debug": "zx ./scripts/build.mjs --type=debug",
     "build:release": "zx ./scripts/build.mjs --type=release",
-    "publish:local": "npm uninstall -g flatt && npm link"
+    "publish:local": "npm uninstall -g flatt && npm link",
+    "prepare": "npm run build:release"
   },
   "dependencies": {
     "execa": "^6.1.0"

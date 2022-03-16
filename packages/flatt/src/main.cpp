@@ -120,6 +120,7 @@ optional<string> flatc_reflection(const path &file)
   // auto exchanges = map<string, set<string>>({});
 
   auto objects = schema.objects();
+  auto enums = schema.enums();
 
   auto data = json({});
   data["file_ident"] = schema.file_ident()->str();
@@ -148,18 +149,83 @@ optional<string> flatc_reflection(const path &file)
     data["advanced_features"].push_back("optional_scalars");
   }
 
+  auto type_info = [&](const reflection::Type *type) {
+    auto name = ""s;
+    switch (type->base_type())
+    {
+    case reflection::BaseType::UType:
+      name = "utype";
+      break;
+    case reflection::BaseType::Bool:
+      name = "bool";
+      break;
+    case reflection::BaseType::Byte:
+      name = "byte";
+      break;
+    case reflection::BaseType::UByte:
+      name = "ubyte";
+      break;
+    case reflection::BaseType::Short:
+      name = "short";
+      break;
+    case reflection::BaseType::UShort:
+      name = "ushort";
+      break;
+    case reflection::BaseType::Int:
+      name = "int";
+      break;
+    case reflection::BaseType::UInt:
+      name = "uint";
+      break;
+    case reflection::BaseType::Long:
+      name = "long";
+      break;
+    case reflection::BaseType::ULong:
+      name = "ulong";
+      break;
+    case reflection::BaseType::Float:
+      name = "float";
+      break;
+    case reflection::BaseType::Double:
+      name = "double";
+      break;
+    case reflection::BaseType::String:
+      name = "string";
+      break;
+    case reflection::BaseType::Vector:
+      name = "vector";
+      break;
+    case reflection::BaseType::Obj:
+      name = "obj";
+      break;
+    case reflection::BaseType::Union:
+      name = "union";
+      break;
+    case reflection::BaseType::Array:
+      name = "array";
+      break;
+    default:
+      return json(nullptr);
+    }
+
+    return json({
+      { "id", json::number_integer_t(entt::hashed_string::value(name.c_str())) },
+      { "name", name },
+    });
+  };
+
   for (auto i = 0; i < objects->Length(); i++)
   {
     auto obj = objects->Get(i);
     auto name = obj->name()->str();
 
     auto type = json({
-      { "id", entt::hashed_string::value(name.c_str()) },
+      { "id", json::number_integer_t(entt::hashed_string::value(name.c_str())) },
       { "name", name.substr(name.find_last_of('.') + 1) },
       { "namespace", name.substr(0, name.find_last_of('.')) },
-      { "minalign", obj->minalign() },
       { "attributes", flac_parse_attributes(obj->attributes()) },
       { "documentation", flac_parse_documentation(obj->documentation()) },
+      { "minalign", json::number_integer_t(obj->minalign()) },
       { "fields",
         [&]() {
           auto fields = json::array({});
@@ -174,16 +240,16 @@ optional<string> flatc_reflection(const path &file)
           {
             auto entry = list->Get(i);
             fields.push_back({
-              { "id", entry->id() },
+              { "id", json::number_integer_t(entry->id()) },
               { "name", entry->name()->str() },
-              { "type", entry->type()->index() },
-              { "offset", entry->offset() },
-              { "key", entry->key() },
-              { "deprecated", entry->deprecated() },
-              { "optional", entry->optional() },
-              { "required", entry->required() },
+              { "type", type_info(entry->type()) },
               { "attributes", flac_parse_attributes(entry->attributes()) },
               { "documentation", flac_parse_documentation(entry->documentation()) },
+              { "offset", json::number_integer_t(entry->offset()) },
+              { "is_key", entry->key() },
+              { "is_deprecated", entry->deprecated() },
+              { "is_optional", entry->optional() },
+              { "is_required", entry->required() },
               // TODO: default value
             });
           }
@@ -194,12 +260,88 @@ optional<string> flatc_reflection(const path &file)
 
     if (obj->is_struct())
     {
+      type["size"] = json::number_integer_t(obj->bytesize());
       data["structs"].push_back(type);
     }
     else
     {
       data["tables"].push_back(type);
     }
+  }
+
+  for (auto i = 0; i < enums->Length(); i++)
+  {
+    auto en = enums->Get(i);
+    auto name = en->name()->str();
+
+    bool has_values = false;
+    int64_t min_value = 0, max_value = 0;
+
+    auto values = en->values();
+    if (values != nullptr)
+    {
+      for (int i = 0; i < values->Length(); i++)
+      {
+        auto entry = values->Get(i);
+        auto value = entry->value();
+        if (!has_values)
+        {
+          has_values = true;
+          min_value = max_value = value;
+        }
+        else
+        {
+          min_value = value < min_value ? value : min_value;
+          max_value = value > max_value ? value : max_value;
+        }
+      }
+    }
+
+    auto type = json({
+      { "id", json::number_integer_t(entt::hashed_string::value(name.c_str())) },
+      { "name", name.substr(name.find_last_of('.') + 1) },
+      { "namespace", name.substr(0, name.find_last_of('.')) },
+      { "type", type_info(en->underlying_type()) },
+      { "attributes", flac_parse_attributes(en->attributes()) },
+      { "documentation", flac_parse_documentation(en->documentation()) },
+      { "min", json(nullptr) },
+      { "max", json(nullptr) },
+      { "range", json(0) },
+      { "count", json(0) },
+      { "is_union", en->is_union() },
+      { "values",
+        [&]() {
+          auto values = json::array({});
+          auto list = en->values();
+          if (list == nullptr)
+          {
+            return values;
+          }
+
+          for (int i = 0; i < list->Length(); i++)
+          {
+            auto entry = list->Get(i);
+            auto value = entry->value();
+            values.push_back({
+              { "name", entry->name()->str() },
+              { "value", json::number_integer_t(value) },
+              { "documentation", flac_parse_documentation(entry->documentation()) },
+            });
+          }
+
+          return values;
+        }() },
+    });
+
+    if (has_values)
+    {
+      type["min"] = json::number_integer_t(min_value);
+      type["max"] = json::number_integer_t(max_value);
+      type["range"] = json::number_integer_t(max_value - min_value);
+      type["count"] = json::number_integer_t(max_value - min_value + 1);
+    }
+
+    data["enums"].push_back(type);
   }
 
   return data.dump(2);
@@ -214,13 +356,27 @@ auto on_script_error(lua_State *, sol::protected_function_result pfr)
 
 int run_project(const path &entrypoint, const vector<string> &arguments)
 {
-  if (!io::exists(entrypoint))
+  auto project_file = path(entrypoint);
+
+  if (filesystem::is_directory(project_file))
   {
-    spdlog::error("Unable to find project file: {}", entrypoint.string());
+    project_file /= "flatt.lua";
+  }
+
+  if (!io::exists(project_file))
+  {
+    spdlog::error("Unable to find project file: {}", project_file.string());
     return 1;
   }
 
-  auto project_dir = io::absolute(entrypoint).parent_path();
+  project_file = io::absolute(project_file);
+  auto project_dir = project_file.parent_path();
+
+#ifdef _WIN32
+  SetCurrentDirectory(project_dir.string().c_str());
+#else
+#error Not window
+#endif
 
   sol::state lua;
   lua.open_libraries(
@@ -377,7 +533,7 @@ int run_project(const path &entrypoint, const vector<string> &arguments)
     )",
     on_script_error);
 
-  auto result = lua.safe_script_file(entrypoint.string(), on_script_error);
+  auto result = lua.safe_script_file(project_file.string(), on_script_error);
   if (!result.valid())
   {
     return -1;

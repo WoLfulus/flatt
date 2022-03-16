@@ -4,5 +4,5 @@
 
 namespace protocol
 {
-  static constexpr const char* version = "670992DCB058EB4282A63D66CA7EAA96E25D53DD";
+  static constexpr const char* version = "047D5839F8CE1531A18D95A19040D4E571DD33EC";
 } // namespace protocol

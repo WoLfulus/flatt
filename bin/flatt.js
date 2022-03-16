@@ -18,8 +18,9 @@ if (!fs.existsSync(flatt) || !fs.existsSync(flatc)) {
   process.exit(1);
 } else {
   async function main() {
+    const args = process.argv.splice(2);
     const { execa } = await import('execa');
-    const proc = execa(flatt, [], { stderr: 'inherit', stdout: 'inherit', stdin: 'inherit' });
+    const proc = execa(flatt, args, { stderr: 'inherit', stdout: 'inherit', stdin: 'inherit' });
     try {
       console.log(await proc);
     } catch (err) {

@@ -48,6 +48,13 @@ for index,current in pairs(reflection.tables) do
   end
 end
 
+local enums = {}
+for index,current in pairs(reflection.enums) do
+  -- use packet attribute as a selector
+  flatt.log.info("Found enum: ".. current.name)
+  table.insert(enums, current)
+end
+
 flatt.log.info("")
 
 -- copy files that are not a template file
@@ -60,6 +67,7 @@ for i,file in pairs(files) do
   local data = lunajson.encode({
     version = version,
     packets = packets,
+    enums = enums,
   })
 
   if not flatt.string.ends_with(source, ".j2") then
@@ -73,4 +81,3 @@ for i,file in pairs(files) do
 end
 
 flatt.log.info("")
-
