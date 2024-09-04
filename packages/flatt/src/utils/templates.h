@@ -153,60 +153,102 @@ json filter(Arguments &args, bool invert = false)
 
 json trace(Arguments &args)
 {
+  inja::Environment env;
+  inja::Template tpl = env.parse("{{ data }}");
+
   for (auto i = 0; i < args.size(); i++)
   {
     auto arg = *args[i];
-    spdlog::trace("{}: {}", i, arg);
+
+    json data = json::object();
+    data["data"] = arg;
+
+    spdlog::trace("{}: {}", i, env.render(tpl, data).c_str());
   }
   return json(nullptr);
 }
 
 json debug(Arguments &args)
 {
+  inja::Environment env;
+  inja::Template tpl = env.parse("{{ data }}");
+
   for (auto i = 0; i < args.size(); i++)
   {
     auto arg = *args[i];
-    spdlog::debug("{}: {}", i, arg);
+
+    json data = json::object();
+    data["data"] = arg;
+
+    spdlog::debug("{}: {}", i, env.render(tpl, data).c_str());
   }
   return json(nullptr);
 }
 
 json info(Arguments &args)
 {
+  inja::Environment env;
+  inja::Template tpl = env.parse("{{ data }}");
+
   for (auto i = 0; i < args.size(); i++)
   {
     auto arg = *args[i];
-    spdlog::info("{}: {}", i, arg);
+
+    json data = json::object();
+    data["data"] = arg;
+
+    spdlog::info("{}: {}", i, env.render(tpl, data).c_str());
   }
   return json(nullptr);
 }
 
 json warn(Arguments &args)
 {
+  inja::Environment env;
+  inja::Template tpl = env.parse("{{ data }}");
+
   for (auto i = 0; i < args.size(); i++)
   {
     auto arg = *args[i];
-    spdlog::warn("{}: {}", i, arg);
+
+    json data = json::object();
+    data["data"] = arg;
+
+    spdlog::warn("{}: {}", i, env.render(tpl, data).c_str());
   }
   return json(nullptr);
 }
 
 json error(Arguments &args)
 {
+  inja::Environment env;
+  inja::Template tpl = env.parse("{{ data }}");
+
   for (auto i = 0; i < args.size(); i++)
   {
     auto arg = *args[i];
-    spdlog::error("{}: {}", i, arg);
+
+    json data = json::object();
+    data["data"] = arg;
+
+    spdlog::error("{}: {}", i, env.render(tpl, data).c_str());
   }
   return json(nullptr);
 }
 
 json critical(Arguments &args)
 {
+  inja::Environment env;
+  inja::Template tpl = env.parse("{{ data }}");
+
   for (auto i = 0; i < args.size(); i++)
   {
     auto arg = *args[i];
-    spdlog::critical("{}: {}", i, arg);
+
+    json data = json::object();
+    data["data"] = arg;
+
+    spdlog::critical("{}: {}", i, env.render(tpl, data).c_str());
   }
   return json(nullptr);
 }

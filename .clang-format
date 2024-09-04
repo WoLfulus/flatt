@@ -3,12 +3,33 @@ AlignAfterOpenBracket: AlwaysBreak
 ContinuationIndentWidth: 2
 DerivePointerAlignment: true
 IndentWidth: 2
-NamespaceIndentation: Inner
+# NamespaceIndentation: Inner
 Cpp11BracedListStyle: false
 BreakBeforeBraces: Custom
+AllowShortLambdasOnASingleLine: Empty
 BraceWrapping:
+  AfterControlStatement: Never
+  AfterClass: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterCaseLabel: false
+  AfterExternBlock: false
   AfterNamespace: false
+  AfterEnum: false
+  AfterFunction: false
+  BeforeCatch: false
+  BeforeElse: false
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  SplitEmptyRecord: true
+  SplitEmptyFunction: true
+  SplitEmptyNamespace: true
 BreakConstructorInitializersBeforeComma: true
 SortIncludes: false
 AlwaysBreakTemplateDeclarations: Yes
 #SeparateDefinitionBlocks: Always
+IndentPPDirectives: BeforeHash
+NamespaceIndentation: All
+MaxEmptyLinesToKeep: 2
+SeparateDefinitionBlocks: Always
+EmptyLineBeforeAccessModifier: LogicalBlock

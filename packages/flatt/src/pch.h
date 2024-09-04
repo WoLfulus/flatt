@@ -26,6 +26,7 @@
 #include <flatbuffers/flatbuffers.h>
 #include <flatbuffers/util.h>
 #include <flatbuffers/minireflect.h>
+
 #include "reflection/reflection.h"
 
 #include <inja/inja.hpp>

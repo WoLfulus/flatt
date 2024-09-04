@@ -1,8 +1,8 @@
 {
-  "version": 3,
+  "version": 6,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 21,
+    "minor": 27,
     "patch": 0
   },
   "configurePresets": [
@@ -14,6 +14,8 @@
         "dev": true
       },
       "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "${sourceDir}/cmake/conan.cmake",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/dist/${presetName}"
       }
     },
@@ -43,10 +45,7 @@
     {
       "name": "win-x64",
       "hidden": true,
-      "inherits": [
-        "x64"
-      ],
-      "generator": "Visual Studio 17 2022",
+      "inherits": ["x64"],
       "architecture": {
         "strategy": "set",
         "value": "x64"
@@ -54,20 +53,12 @@
     },
     {
       "name": "win-x64-debug",
-      "inherits": [
-        "win-x64",
-        "debug",
-        "base"
-      ],
+      "inherits": ["win-x64", "debug", "base"],
       "displayName": "Windows Debug (x64)"
     },
     {
       "name": "win-x64-release",
-      "inherits": [
-        "win-x64",
-        "release",
-        "base"
-      ],
+      "inherits": ["win-x64", "release", "base"],
       "displayName": "Windows Release (x64)"
     }
   ],
@@ -85,6 +76,19 @@
       "configurePreset": "win-x64-release",
       "configuration": "Release",
       "jobs": 8
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "asdasd",
+      "description": "aaaa",
+      "displayName": "aaaa",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "win-x64-debug"
+        }
+      ]
     }
   ]
 }

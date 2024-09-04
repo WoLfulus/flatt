@@ -79,6 +79,11 @@ local info = lunajson.decode(json)
 - Conan
 - Node.js
 
+## IDE (Windows)
+
+- `scoop install cmake`
+- `scoop install llvm`
+
 ## Compiling
 
 > `npm install && npm run build`
@@ -86,6 +91,7 @@ local info = lunajson.decode(json)
 # API
 
 ## `vars`
+
 ---
 
 ### `flatt.vars.flatt_dir`
@@ -140,6 +146,7 @@ args.b
 ---
 
 ## `flatc`
+
 ---
 
 ### `flatt.flatc(arguments)`
@@ -152,6 +159,7 @@ flatt.flatc({ "--cpp", "schema.fbs" })
 ---
 
 ## `shell`
+
 ---
 
 ### `flatt.shell(command, arguments)`
@@ -164,6 +172,7 @@ flatt.shell("echo", { "hello", "world" })
 ---
 
 ## `reflect`
+
 ---
 
 ### `flatt.reflect(path)`
@@ -180,6 +189,7 @@ flatt.reflect("schema.fbs")
 ---
 
 ## `log`
+
 ---
 
 <details>
@@ -261,10 +271,10 @@ flatt.log.critical("log line")
 
 </details>
 
-
 ---
 
 ## `file`
+
 ---
 
 <details>
@@ -311,6 +321,7 @@ flatt.dir.hash("some-file.ext")
 ---
 
 ## `dir`
+
 ---
 
 <details>
@@ -333,6 +344,7 @@ flatt.dir.hash(".")
 ---
 
 ## `templates`
+
 ---
 
 Builtin provided template engine functions (inja).
@@ -364,6 +376,7 @@ flatt.templates.render_string("template.txt", "output.txt", "{\"name\":\"world\"
 ---
 
 ## `string`
+
 ---
 
 <details>
@@ -578,20 +591,3 @@ flatt.string.cpp_case("NewGUIAlertBox")
 ```
 
 </details>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
