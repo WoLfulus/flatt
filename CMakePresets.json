@@ -77,18 +77,5 @@
       "configuration": "Release",
       "jobs": 8
     }
-  ],
-  "workflowPresets": [
-    {
-      "name": "asdasd",
-      "description": "aaaa",
-      "displayName": "aaaa",
-      "steps": [
-        {
-          "type": "configure",
-          "name": "win-x64-debug"
-        }
-      ]
-    }
   ]
 }

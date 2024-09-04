@@ -81,6 +81,7 @@ local info = lunajson.decode(json)
 
 ## IDE (Windows)
 
+- `scoop install conan`
 - `scoop install cmake`
 - `scoop install llvm`
 
