@@ -1,0 +1,19 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "win",
+      "hidden": true,
+      "cacheVariables": {
+        "OPT_OS": "win"
+      }
+    },
+    {
+      "name": "linux",
+      "hidden": true,
+      "cacheVariables": {
+        "OPT_OS": "linux"
+      }
+    }
+  ]
+}

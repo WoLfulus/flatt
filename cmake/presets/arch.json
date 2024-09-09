@@ -1,0 +1,27 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "x86",
+      "hidden": true,
+      "architecture": {
+        "strategy": "external",
+        "value": "x86"
+      },
+      "cacheVariables": {
+        "OPT_ARCH": "x86"
+      }
+    },
+    {
+      "name": "x64",
+      "hidden": true,
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "OPT_ARCH": "x64"
+      }
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "version": 6,
+  "include": ["base.json", "arch.json", "os.json", "config.json"],
+  "configurePresets": [
+    {
+      "name": "win-x64-debug",
+      "displayName": "win-x64-debug",
+      "inherits": ["debug", "x64", "win", "base"]
+    },
+    {
+      "name": "win-x64-release",
+      "displayName": "win-x64-release",
+      "inherits": ["release", "x64", "win", "base"]
+    },
+    {
+      "name": "win-x86-debug",
+      "displayName": "win-x86-debug",
+      "inherits": ["debug", "x86", "win", "base"]
+    },
+    {
+      "name": "win-x86-release",
+      "displayName": "win-x86-release",
+      "inherits": ["release", "x86", "win", "base"]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "win-x64-debug",
+      "displayName": "win-x64-debug",
+      "configurePreset": "win-x64-debug"
+    },
+    {
+      "name": "win-x64-release",
+      "displayName": "win-x64-release",
+      "configurePreset": "win-x64-release"
+    },
+    {
+      "name": "win-x86-debug",
+      "displayName": "win-x86-debug",
+      "configurePreset": "win-x86-debug"
+    },
+    {
+      "name": "win-x86-release",
+      "displayName": "win-x86-release",
+      "configurePreset": "win-x86-release"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "version": 6,
+  "include": ["base.json", "arch.json", "os.json", "config.json"],
+  "configurePresets": [
+    {
+      "name": "linux-x64-debug",
+      "displayName": "linux-x64-debug",
+      "inherits": ["debug", "x64", "linux", "base"]
+    },
+    {
+      "name": "linux-x64-release",
+      "displayName": "linux-x64-release",
+      "inherits": ["release", "x64", "linux", "base"]
+    },
+    {
+      "name": "linux-x86-debug",
+      "displayName": "linux-x86-debug",
+      "inherits": ["debug", "x86", "linux", "base"]
+    },
+    {
+      "name": "linux-x86-release",
+      "displayName": "linux-x86-release",
+      "inherits": ["release", "x86", "linux", "base"]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "linux-x64-debug",
+      "displayName": "linux-x64-debug",
+      "configurePreset": "linux-x64-debug"
+    },
+    {
+      "name": "linux-x64-release",
+      "displayName": "linux-x64-release",
+      "configurePreset": "linux-x64-release"
+    },
+    {
+      "name": "linux-x86-debug",
+      "displayName": "linux-x86-debug",
+      "configurePreset": "linux-x86-debug"
+    },
+    {
+      "name": "linux-x86-release",
+      "displayName": "linux-x86-release",
+      "configurePreset": "linux-x86-release"
+    }
+  ]
+}
