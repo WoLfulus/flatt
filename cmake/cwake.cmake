@@ -178,13 +178,20 @@ macro(cwake_bootstrap root)
   cwake_default(CMAKE_BUILD_TYPE "Debug")
   cwake_default(OPT_OS "win")
   cwake_default(OPT_ARCH "x86")
+
+  cwake_default(OPT_VARIANT "")
+  set(VARIANT_VALUE ${OPT_VARIANT})
+  if (VARIANT_VALUE STREQUAL "")
+    set(VARIANT_VALUE "-${VARIANT_VALUE}")
+  endif()
+
   cwake_default(OPT_CONFIG "${CMAKE_BUILD_TYPE}")
   cwake_default(OPT_EXTERNAL_ROOT "external")
   cwake_default(OPT_PACKAGES_ROOT "packages")
   cwake_default(OPT_THIRDPARTY_ROOT "thirdparty")
   cwake_default(OPT_PACKAGE_FILTER "*")
-  cwake_default(OPT_CONAN_PROFILE_NAME "${OPT_OS}-${OPT_ARCH}-${OPT_CONFIG}")
-  cwake_default(OPT_CONTEXT_NAME "${OPT_OS}-${OPT_ARCH}-${OPT_CONFIG}")
+  cwake_default(OPT_CONAN_PROFILE_NAME "${OPT_OS}-${OPT_ARCH}${VARIANT_VALUE}-${OPT_CONFIG}")
+  cwake_default(OPT_CONTEXT_NAME "${OPT_OS}-${OPT_ARCH}${VARIANT_VALUE}-${OPT_CONFIG}")
 
   set(CWAKE_ROOT_DIRECTORY "${root}")
   set(CWAKE_ROOT_DIRECTORY "${root}")
@@ -445,14 +452,12 @@ macro(cwake_package_configure_tests)
     string(REGEX REPLACE "/" "_" TEST_NAME ${TEST_NAME})
     set(TEST_TARGET "${PACKAGE_NAME}_${TEST_NAME}")
     add_executable(${TEST_TARGET} ${TEST_FILE})
-    target_link_libraries(${TEST_TARGET} ${PACKAGE_LINK})
+    target_link_libraries(${TEST_TARGET} PRIVATE ${PACKAGE_LINK})
     target_include_directories(${TEST_TARGET}
       PRIVATE
         ${PACKAGE_INCLUDE_DIRECTORY}
         ${PACKAGE_SOURCE_DIRECTORY}
         ${PACKAGE_RESOURCE_DIRECTORY}
-      PUBLIC
-        ${PACKAGE_ADDITIONAL_INCLUDE_DIRECTORY}
     )
     set_target_properties(${TEST_TARGET}
       PROPERTIES
@@ -688,23 +693,27 @@ macro(cwake_package_setup)
       #       ${INC_MODULES}
       #       ${SRC_MODULES}
       # )
-      target_include_directories(${PACKAGE_NAME}
-        PRIVATE
-          ${PACKAGE_INCLUDE_DIRECTORY}
-          ${PACKAGE_RESOURCE_DIRECTORY}
-          ${PACKAGE_SOURCE_DIRECTORY}
-        PUBLIC
-          ${PACKAGE_ADDITIONAL_INCLUDE_DIRECTORY}
-      )
+
+      # target_include_directories(${PACKAGE_NAME}
+      #   PRIVATE
+      #     ${PACKAGE_INCLUDE_DIRECTORY}
+      #     ${PACKAGE_RESOURCE_DIRECTORY}
+      #     ${PACKAGE_SOURCE_DIRECTORY}
+      #   PUBLIC
+      #     ${PACKAGE_ADDITIONAL_INCLUDE_DIRECTORY}
+      # )
+
       target_link_libraries(${PACKAGE_NAME} ${PACKAGE_LINK})
-      set_target_properties(${PACKAGE_NAME}
-        PROPERTIES
-          VS_JUST_MY_CODE_DEBUGGING ON
-          RUNTIME_OUTPUT_DIRECTORY "${PACKAGE_OUTPUT_DIRECTORY}"
-          RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PACKAGE_OUTPUT_DIRECTORY}"
-          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PACKAGE_OUTPUT_DIRECTORY}"
-          MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
-      )
+      if (MSVC)
+        set_target_properties(${PACKAGE_NAME}
+          PROPERTIES
+            VS_JUST_MY_CODE_DEBUGGING ON
+            RUNTIME_OUTPUT_DIRECTORY "${PACKAGE_OUTPUT_DIRECTORY}"
+            RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PACKAGE_OUTPUT_DIRECTORY}"
+            RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PACKAGE_OUTPUT_DIRECTORY}"
+            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+        )
+      endif()
     endif()
 
     if(EXISTS "${PACKAGE_SOURCE_DIRECTORY}/pch.h")

@@ -1,0 +1,13 @@
+
+function(load_env dir)
+  if(EXISTS "${dir}/.env")
+    file(STRINGS "${dir}/.env" entries)
+    foreach (entry IN LISTS entries)
+      if(entry MATCHES "^([^=]+)=(.*)$")
+        set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}" PARENT_SCOPE)
+      else()
+        message(FATAL_ERROR "Malformed dotenv entry:\n${entry}")
+      endif()
+    endforeach()
+  endif()
+endfunction()

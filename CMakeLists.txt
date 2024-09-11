@@ -1,33 +1,17 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(flatt
-  LANGUAGES
-    CXX C
-)
+project(flatt)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-set(CONAN_LINK_RUNTIME "MT")
+include(cmake/env.cmake)
+load_env()
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.env")
-  file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/.env" entries)
-  foreach (entry IN LISTS entries)
-    if(entry MATCHES "^([^=]+)=(.*)$")
-      set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
-    else()
-      message(FATAL_ERROR "Malformed dotenv entry:\n${entry}")
-    endif()
-  endforeach()
-endif()
+find_package(argparse REQUIRED)
+find_package(cryptopp REQUIRED)
+find_package(flatbuffers REQUIRED)
+find_package(inja REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(sol2 REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(EnTT REQUIRED)
 
-include("./cmake/cwake.cmake")
-
-list(APPEND
-  CMAKE_MODULE_PATH
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
-)
-
-cwake_bootstrap(
-  ${CMAKE_CURRENT_SOURCE_DIR}
-)
+add_executable(${PROJECT_NAME} )

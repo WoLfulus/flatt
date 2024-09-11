@@ -7,9 +7,6 @@
       "architecture": {
         "strategy": "external",
         "value": "x86"
-      },
-      "cacheVariables": {
-        "OPT_ARCH": "x86"
       }
     },
     {
@@ -18,9 +15,6 @@
       "architecture": {
         "strategy": "external",
         "value": "x64"
-      },
-      "cacheVariables": {
-        "OPT_ARCH": "x64"
       }
     }
   ]

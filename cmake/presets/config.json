@@ -5,7 +5,6 @@
       "name": "debug",
       "hidden": true,
       "cacheVariables": {
-        "OPT_CONFIG": "debug",
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
@@ -13,7 +12,6 @@
       "name": "release",
       "hidden": true,
       "cacheVariables": {
-        "OPT_CONFIG": "release",
         "CMAKE_BUILD_TYPE": "Release"
       }
     }

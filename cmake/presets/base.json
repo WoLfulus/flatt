@@ -10,6 +10,7 @@
         "dev": true
       },
       "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "23",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "${sourceDir}/cmake/conan.cmake"
       }

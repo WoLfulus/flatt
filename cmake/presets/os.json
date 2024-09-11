@@ -5,14 +5,14 @@
       "name": "win",
       "hidden": true,
       "cacheVariables": {
-        "OPT_OS": "win"
+        "CONAN_HOST_PROFILE": "win-x64-debug"
       }
     },
     {
       "name": "linux",
       "hidden": true,
       "cacheVariables": {
-        "OPT_OS": "linux"
+        "CONAN_HOST_PROFILE": "linux-x64"
       }
     }
   ]
