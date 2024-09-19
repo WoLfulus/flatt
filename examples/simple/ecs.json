@@ -1,0 +1,199 @@
+{
+  "advanced_features": {
+    "advanced_array_features": false,
+    "advanced_union_features": false,
+    "defaualt_vectors_and_strings": false,
+    "optional_scalars": false
+  },
+  "enums": [],
+  "file_ext": "",
+  "file_ident": "",
+  "services": [],
+  "structs": [
+    {
+      "attributes": {},
+      "bytesize": 8,
+      "documentation": [],
+      "fields": [
+        {
+          "attributes": {},
+          "default_float": 0.0,
+          "default_integer": 0,
+          "documentation": [],
+          "id": 0,
+          "is_deprecated": false,
+          "is_key": false,
+          "is_offset64": false,
+          "is_optional": false,
+          "is_required": false,
+          "name": "x",
+          "offset": 0,
+          "padding": 0,
+          "type": {
+            "id": 2797886853,
+            "index": -1,
+            "length": 0,
+            "name": "float",
+            "size": 4
+          }
+        },
+        {
+          "attributes": {},
+          "default_float": 0.0,
+          "default_integer": 0,
+          "documentation": [],
+          "id": 1,
+          "is_deprecated": false,
+          "is_key": false,
+          "is_offset64": false,
+          "is_optional": false,
+          "is_required": false,
+          "name": "y",
+          "offset": 4,
+          "padding": 0,
+          "type": {
+            "id": 2797886853,
+            "index": -1,
+            "length": 0,
+            "name": "float",
+            "size": 4
+          }
+        }
+      ],
+      "file": "//ecs.fbs",
+      "id": 2197844016,
+      "minalign": 4,
+      "name": "Vector2",
+      "namespace": "Vector2"
+    }
+  ],
+  "tables": [
+    {
+      "attributes": {
+        "archetype": "0"
+      },
+      "documentation": [],
+      "fields": [
+        {
+          "attributes": {},
+          "default_float": 0.0,
+          "default_integer": 0,
+          "documentation": [],
+          "id": 0,
+          "is_deprecated": false,
+          "is_key": false,
+          "is_offset64": false,
+          "is_optional": true,
+          "is_required": false,
+          "name": "position",
+          "offset": 4,
+          "padding": 0,
+          "type": {
+            "id": 3343205242,
+            "index": 1,
+            "length": 0,
+            "name": "obj",
+            "size": 4
+          }
+        },
+        {
+          "attributes": {},
+          "default_float": 0.0,
+          "default_integer": 0,
+          "documentation": [],
+          "id": 1,
+          "is_deprecated": false,
+          "is_key": false,
+          "is_offset64": false,
+          "is_optional": true,
+          "is_required": false,
+          "name": "velocity",
+          "offset": 6,
+          "padding": 0,
+          "type": {
+            "id": 3343205242,
+            "index": 3,
+            "length": 0,
+            "name": "obj",
+            "size": 4
+          }
+        }
+      ],
+      "file": "//ecs.fbs",
+      "id": 477166624,
+      "minalign": 1,
+      "name": "Player",
+      "namespace": "Player"
+    },
+    {
+      "attributes": {
+        "component": "0"
+      },
+      "documentation": [],
+      "fields": [
+        {
+          "attributes": {},
+          "default_float": 0.0,
+          "default_integer": 0,
+          "documentation": [],
+          "id": 0,
+          "is_deprecated": false,
+          "is_key": false,
+          "is_offset64": false,
+          "is_optional": true,
+          "is_required": false,
+          "name": "value",
+          "offset": 4,
+          "padding": 0,
+          "type": {
+            "id": 3343205242,
+            "index": 2,
+            "length": 0,
+            "name": "obj",
+            "size": 4
+          }
+        }
+      ],
+      "file": "//ecs.fbs",
+      "id": 3799987242,
+      "minalign": 1,
+      "name": "Position",
+      "namespace": "Position"
+    },
+    {
+      "attributes": {
+        "component": "0"
+      },
+      "documentation": [],
+      "fields": [
+        {
+          "attributes": {},
+          "default_float": 0.0,
+          "default_integer": 0,
+          "documentation": [],
+          "id": 0,
+          "is_deprecated": false,
+          "is_key": false,
+          "is_offset64": false,
+          "is_optional": true,
+          "is_required": false,
+          "name": "value",
+          "offset": 4,
+          "padding": 0,
+          "type": {
+            "id": 3343205242,
+            "index": 2,
+            "length": 0,
+            "name": "obj",
+            "size": 4
+          }
+        }
+      ],
+      "file": "//ecs.fbs",
+      "id": 3124789842,
+      "minalign": 1,
+      "name": "Velocity",
+      "namespace": "Velocity"
+    }
+  ]
+}

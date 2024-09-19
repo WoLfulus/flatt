@@ -1,0 +1,18 @@
+// Generated, don't touch me.
+
+#include "flecs.h"
+#include "components.h"
+
+components::components(flecs::world& world) {
+{% for component in components %}
+  world.component<{{ component.name }}>()
+    {% if component.attributes.sparse %}
+      .add(flecs::Sparse)
+    {% endif %}
+    {% if component.attributes.toggleable %}
+      .add(flecs::CanToggle)
+    {% endif %}
+    ;
+{% endfor %}
+
+}

@@ -1,0 +1,26 @@
+namespace ;
+
+attribute "component";
+attribute "sparse";
+attribute "toggle";
+attribute "singleton";
+
+attribute "archetype";
+
+struct Vector2 {
+  x: float;
+  y: float;
+}
+
+table Position (component) {
+  value: Vector2;
+}
+
+table Velocity (component) {
+  value: Vector2;
+}
+
+table Player (archetype) {
+  position: Position;
+  velocity: Velocity;
+}
