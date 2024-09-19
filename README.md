@@ -2,11 +2,11 @@
 
 Flatbuffers ~code~ reflection based generation tool with scripting support.
 
-# Why?
+## Why?
 
 Flatbuffers is awesome, but you'll eventually need to (or wish you could) write additional code generation steps for your schema files. For example, generating a network protocol handler/dispatcher for you client and server and keep them in sync.
 
-# How does it work?
+## How does it work?
 
 `flatt` exposes a `lua` runtime with some additional helper functions to help you deal with Flatbuffers schema files, reflection and template rendering. You can for example write a `flatt` script that will reflect your schema, manipulate that data, and render (using a template engine or not) a file with the content you just processed.
 
@@ -53,41 +53,35 @@ local info = lunajson.decode(json)
 
 ```
 
-# Usage
+## Usage
 
-## Installation
+### Installation
 
 - `npm install -g flatt`
 
-## Requirements
+### Requirements
 
 - Windows (PRs welcome to add Linux+WSL and Mac support)
 
-## Overview
+### Overview
 
 > `flatt some/project.lua`
 
-##
+###
 
-# Building
+## Building
 
-## Requirements
+### Requirements
 
-- Windows
-- Visual Studio 2022
-- CMake
-- Conan
-- Node.js
-
-## IDE (Windows)
-
-- `scoop install conan`
 - `scoop install cmake`
-- `scoop install llvm`
+- `scoop install charm-gum`
+- `scoop install just`
 
-## Compiling
+### Compiling
 
 > `npm install && npm run build`
+
+---
 
 # API
 

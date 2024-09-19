@@ -22,13 +22,12 @@
 #include <vector>
 #include <optional>
 
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
-/*
-#include "flatbuffers/flatbuffers.h"
-#include "flatbuffers/util.h"
-#include "flatbuffers/minireflect.h"
+#include <flatbuffers/flatbuffers.h>
+#include <flatbuffers/util.h>
+#include <flatbuffers/minireflect.h>
 
 #include "reflection/reflection.h"
 
@@ -40,6 +39,4 @@
 
 #include <sol/sol.hpp>
 
-
 #include <entt/core/hashed_string.hpp>
-*/

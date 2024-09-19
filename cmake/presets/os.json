@@ -1,19 +1,16 @@
 {
-  "version": 6,
+  "version": 8,
+  "$schema": "https://cmake.org/cmake/help/latest/_downloads/3e2d73bff478d88a7de0de736ba5e361/schema.json",
   "configurePresets": [
     {
       "name": "win",
       "hidden": true,
-      "cacheVariables": {
-        "CONAN_HOST_PROFILE": "win-x64-debug"
-      }
+      "cacheVariables": {}
     },
     {
       "name": "linux",
       "hidden": true,
-      "cacheVariables": {
-        "CONAN_HOST_PROFILE": "linux-x64"
-      }
+      "cacheVariables": {}
     }
   ]
 }

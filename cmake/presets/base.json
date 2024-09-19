@@ -1,5 +1,6 @@
 {
-  "version": 6,
+  "version": 8,
+  "$schema": "https://cmake.org/cmake/help/latest/_downloads/3e2d73bff478d88a7de0de736ba5e361/schema.json",
   "configurePresets": [
     {
       "name": "base",
@@ -11,8 +12,17 @@
       },
       "cacheVariables": {
         "CMAKE_CXX_STANDARD": "23",
+        "VCPKG_HOST_TRIPLET": "${presetName}",
+        "VCPKG_TARGET_TRIPLET": "${presetName}",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/dist/${presetName}",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/dist/${presetName}",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG": "${sourceDir}/dist/${presetName}",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE": "${sourceDir}/dist/${presetName}",
+        "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/dist/${presetName}",
+        "CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG": "${sourceDir}/dist/${presetName}",
+        "CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE": "${sourceDir}/dist/${presetName}",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "${sourceDir}/cmake/conan.cmake"
+        "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
       }
     }
   ]

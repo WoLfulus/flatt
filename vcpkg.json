@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "dependencies": [
+    "argparse",
+    "cryptopp",
+    "entt",
+    "flatbuffers",
+    "fmt",
+    "inja",
+    "lua",
+    "nlohmann-json",
+    "pkgconf",
+    "sol2",
+    "spdlog"
+  ]
+}
