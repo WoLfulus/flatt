@@ -1,6 +1,6 @@
 {
   "name": "flatt",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Flatbuffers scriptable code generation tool.",
   "keywords": [
     "flatbuffers",
@@ -31,11 +31,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "npm run build:release",
-    "build:debug": "zx ./scripts/build.mjs --type=debug",
-    "build:release": "zx ./scripts/build.mjs --type=release",
+    "build": "just pack-it-up",
     "publish:local": "npm uninstall -g flatt && npm link",
-    "prepare": "npm run build:release"
+    "prepare": "npm run build"
   },
   "dependencies": {
     "execa": "^6.1.0"

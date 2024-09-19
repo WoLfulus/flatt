@@ -97,3 +97,10 @@ build config="choose":
 [windows, private]
 @build-release:
   just build-local win-x64-release
+
+[windows]
+@pack-it-up:
+  just configure all
+  just build all
+  wsl --exec bash -i -c "just configure all"
+  wsl --exec bash -i -c "just build all"
