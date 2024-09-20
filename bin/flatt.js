@@ -26,7 +26,7 @@ if (!fs.existsSync(flatt) || !fs.existsSync(flatc)) {
       stdin: "inherit",
     });
     try {
-      console.log(await proc);
+      await proc;
     } catch (err) {
       process.exit(1);
     }

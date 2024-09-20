@@ -12,6 +12,5 @@
       "name": "microsoft"
     }
   ],
-  "overlay-triplets": ["./cmake/triplets"],
-  "overlay-ports": ["./cmake/ports"]
+  "overlay-triplets": ["./cmake/triplets"]
 }

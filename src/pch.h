@@ -25,11 +25,12 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+#include <flatbuffers/reflection_generated.h>
 #include <flatbuffers/flatbuffers.h>
 #include <flatbuffers/util.h>
 #include <flatbuffers/minireflect.h>
 
-#include "reflection/reflection.h"
+// #include "reflection/reflection.h"
 
 #include <inja/inja.hpp>
 #include <nlohmann/json.hpp>

@@ -32,14 +32,10 @@
   ],
   "scripts": {
     "build": "just pack-it-up",
-    "publish:local": "npm uninstall -g flatt && npm link",
+    "publish:local": "npm uninstall -g flatt && npm install && npm link",
     "prepare": "npm run build"
   },
   "dependencies": {
-    "execa": "^6.1.0"
-  },
-  "devDependencies": {
-    "yargs": "^17.3.1",
-    "zx": "^5.2.0"
+    "execa": "^9.4.0"
   }
 }

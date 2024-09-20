@@ -68,11 +68,37 @@ endif()
 find_program(FLATC_BIN NAMES flatc PATHS "${VCPKG_INSTALLED_DIR}/${TRIPLET_NAME}/tools/flatbuffers" REQUIRED)
 message(STATUS "Using flatc: ${FLATC_BIN}")
 
+
+# add_custom_command(
+#   TARGET ${PROJECT_NAME} PRE_BUILD
+#   COMMAND
+#     (${FLATC_BIN}
+#       --gen-all
+#       --gen-mutable
+#       --gen-compare
+#       --gen-object-api
+#       --gen-name-strings
+#       --force-empty
+#       --force-empty-vectors
+#       --reflect-types
+#       --reflect-names
+#       --cpp
+#       --cpp-include array
+#       --cpp-std c++17
+#       --cpp-static-reflection
+#       --filename-suffix ""
+#       -o "${CMAKE_CURRENT_SOURCE_DIR}/src/reflection"
+#       "${CMAKE_CURRENT_SOURCE_DIR}/src/reflection/reflection.fbs")
+#   VERBATIM
+# )
+
+
 add_custom_command(
   TARGET ${PROJECT_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FLATC_BIN} ${CMAKE_INSTALL_PREFIX}
   VERBATIM
 )
+
 add_custom_command(
   TARGET ${PROJECT_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/dist/${TRIPLET_NAME}" "${CMAKE_CURRENT_SOURCE_DIR}/bin/${TRIPLET_NAME}"
