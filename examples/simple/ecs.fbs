@@ -1,11 +1,4 @@
-namespace ;
-
-attribute "component";
-attribute "sparse";
-attribute "toggle";
-attribute "singleton";
-
-attribute "archetype";
+include "ecs_flecs.fbs";
 
 struct Vector2 {
   x: float;
@@ -23,4 +16,8 @@ table Velocity (component) {
 table Player (archetype) {
   position: Position;
   velocity: Velocity;
+}
+
+table Status (component, is_singleton, is_sparse) {
+
 }

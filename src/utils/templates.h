@@ -218,6 +218,8 @@ namespace templates {
         for (auto item : arg) {
           m.push_back(item);
         }
+      } else {
+        m.push_back(arg);
       }
     }
     return m;
@@ -328,8 +330,8 @@ namespace templates {
   }
 
   Environment engine(Environment &env) {
-    env.set_trim_blocks(true);
-    env.set_lstrip_blocks(true);
+    // env.set_trim_blocks(true);
+    // env.set_lstrip_blocks(true);
 
     // strings
     env.add_callback("padright", 3, padright);

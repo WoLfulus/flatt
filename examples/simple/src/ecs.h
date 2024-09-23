@@ -32,6 +32,10 @@ struct Player;
 struct PlayerBuilder;
 struct PlayerT;
 
+struct Status;
+struct StatusBuilder;
+struct StatusT;
+
 bool operator==(const Vector2 &lhs, const Vector2 &rhs);
 bool operator!=(const Vector2 &lhs, const Vector2 &rhs);
 bool operator==(const PositionT &lhs, const PositionT &rhs);
@@ -40,6 +44,8 @@ bool operator==(const VelocityT &lhs, const VelocityT &rhs);
 bool operator!=(const VelocityT &lhs, const VelocityT &rhs);
 bool operator==(const PlayerT &lhs, const PlayerT &rhs);
 bool operator!=(const PlayerT &lhs, const PlayerT &rhs);
+bool operator==(const StatusT &lhs, const StatusT &rhs);
+bool operator!=(const StatusT &lhs, const StatusT &rhs);
 
 inline const ::flatbuffers::TypeTable *Vector2TypeTable();
 
@@ -48,6 +54,8 @@ inline const ::flatbuffers::TypeTable *PositionTypeTable();
 inline const ::flatbuffers::TypeTable *VelocityTypeTable();
 
 inline const ::flatbuffers::TypeTable *PlayerTypeTable();
+
+inline const ::flatbuffers::TypeTable *StatusTypeTable();
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector2 FLATBUFFERS_FINAL_CLASS {
  private:
@@ -394,6 +402,64 @@ struct Player::Traits {
 
 ::flatbuffers::Offset<Player> CreatePlayer(::flatbuffers::FlatBufferBuilder &_fbb, const PlayerT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
+struct StatusT : public ::flatbuffers::NativeTable {
+  typedef Status TableType;
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
+    return "StatusT";
+  }
+};
+
+struct Status FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef StatusT NativeTableType;
+  typedef StatusBuilder Builder;
+  struct Traits;
+  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return StatusTypeTable();
+  }
+  static FLATBUFFERS_CONSTEXPR_CPP11 const char *GetFullyQualifiedName() {
+    return "Status";
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           verifier.EndTable();
+  }
+  StatusT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(StatusT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<Status> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const StatusT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+};
+
+struct StatusBuilder {
+  typedef Status Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  explicit StatusBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Status> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Status>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Status> CreateStatus(
+    ::flatbuffers::FlatBufferBuilder &_fbb) {
+  StatusBuilder builder_(_fbb);
+  return builder_.Finish();
+}
+
+struct Status::Traits {
+  using type = Status;
+  static auto constexpr Create = CreateStatus;
+  static constexpr auto name = "Status";
+  static constexpr auto fully_qualified_name = "Status";
+  static constexpr size_t fields_number = 0;
+  static constexpr std::array<const char *, fields_number> field_names = {};
+};
+
+::flatbuffers::Offset<Status> CreateStatus(::flatbuffers::FlatBufferBuilder &_fbb, const StatusT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+
 
 inline bool operator==(const PositionT &lhs, const PositionT &rhs) {
   return
@@ -538,6 +604,39 @@ inline ::flatbuffers::Offset<Player> CreatePlayer(::flatbuffers::FlatBufferBuild
       _velocity);
 }
 
+
+inline bool operator==(const StatusT &, const StatusT &) {
+  return true;
+}
+
+inline bool operator!=(const StatusT &lhs, const StatusT &rhs) {
+    return !(lhs == rhs);
+}
+
+
+inline StatusT *Status::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::make_unique<StatusT>();
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
+}
+
+inline void Status::UnPackTo(StatusT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+}
+
+inline ::flatbuffers::Offset<Status> Status::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const StatusT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return CreateStatus(_fbb, _o, _rehasher);
+}
+
+inline ::flatbuffers::Offset<Status> CreateStatus(::flatbuffers::FlatBufferBuilder &_fbb, const StatusT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const StatusT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  return CreateStatus(
+      _fbb);
+}
+
 inline const ::flatbuffers::TypeTable *Vector2TypeTable() {
   static const ::flatbuffers::TypeCode type_codes[] = {
     { ::flatbuffers::ET_FLOAT, 0, -1 },
@@ -601,6 +700,13 @@ inline const ::flatbuffers::TypeTable *PlayerTypeTable() {
   };
   static const ::flatbuffers::TypeTable tt = {
     ::flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+inline const ::flatbuffers::TypeTable *StatusTypeTable() {
+  static const ::flatbuffers::TypeTable tt = {
+    ::flatbuffers::ST_TABLE, 0, nullptr, nullptr, nullptr, nullptr, nullptr
   };
   return &tt;
 }

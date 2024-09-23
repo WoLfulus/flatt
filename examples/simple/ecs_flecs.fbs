@@ -1,0 +1,23 @@
+namespace flecs;
+
+attribute "module";
+attribute "component";
+attribute "archetype";
+
+// https://www.flecs.dev/flecs/md_docs_2ComponentTraits.html#trait-trait
+attribute "trait";
+
+// https://www.flecs.dev/flecs/md_docs_2ComponentTraits.html#ondelete-remove
+attribute "cleanup_remove";
+
+// https://www.flecs.dev/flecs/md_docs_2ComponentTraits.html#ondelete-delete
+attribute "cleanup_delete";
+
+// https://www.flecs.dev/flecs/md_docs_2ComponentTraits.html#ondeletetarget-delete
+attribute "cleanup_delete_target";
+
+
+attribute "is_relationship";
+attribute "is_singleton";
+attribute "is_sparse";
+attribute "is_toggleable";

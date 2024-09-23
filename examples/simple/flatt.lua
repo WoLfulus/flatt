@@ -50,9 +50,9 @@ file.write("ecs.json", reflection_json)
 local components = {}
 for _, current in pairs(reflection.tables) do
   if current.attributes.component then
-    current.attributes.toggleable = current.attributes.toggleable or false
-    current.attributes.singleton = current.attributes.singleton or false
-    current.attributes.sparse = current.attributes.sparse or false
+    current.attributes.is_toggleable = current.attributes.is_toggleable or false
+    current.attributes.is_singleton = current.attributes.is_singleton or false
+    current.attributes.is_sparse = current.attributes.is_sparse or false
     current.name_snake = string.snake_case(current.name)
     current.namespace_path = string.cpp_case(current.namespace)
     table.insert(components, current)

@@ -112,7 +112,7 @@
           "padding": 0,
           "type": {
             "id": 3343205242,
-            "index": 3,
+            "index": 4,
             "length": 0,
             "name": "obj",
             "size": 4
@@ -147,7 +147,7 @@
           "padding": 0,
           "type": {
             "id": 3343205242,
-            "index": 2,
+            "index": 3,
             "length": 0,
             "name": "obj",
             "size": 4
@@ -159,6 +159,20 @@
       "minalign": 1,
       "name": "Position",
       "namespace": "Position"
+    },
+    {
+      "attributes": {
+        "component": "0",
+        "is_singleton": "0",
+        "is_sparse": "0"
+      },
+      "documentation": [],
+      "fields": [],
+      "file": "//ecs.fbs",
+      "id": 6222351,
+      "minalign": 1,
+      "name": "Status",
+      "namespace": "Status"
     },
     {
       "attributes": {
@@ -182,7 +196,7 @@
           "padding": 0,
           "type": {
             "id": 3343205242,
-            "index": 2,
+            "index": 3,
             "length": 0,
             "name": "obj",
             "size": 4

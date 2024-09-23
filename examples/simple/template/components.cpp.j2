@@ -3,16 +3,17 @@
 #include "flecs.h"
 #include "components.h"
 
-components::components(flecs::world& world) {
-{% for component in components %}
-  world.component<{{ component.name }}>()
-    {% if component.attributes.sparse %}
-      .add(flecs::Sparse)
-    {% endif %}
-    {% if component.attributes.toggleable %}
-      .add(flecs::CanToggle)
-    {% endif %}
-    ;
-{% endfor %}
-
+components::components(flecs::world& world) { {%- for component in components -%}
+  {%- set traits = [] -%}
+  {%- if component.attributes.is_singleton -%}
+  {%-   set traits = merge(traits, "Singleton") -%}
+  {%- endif -%}
+  {%- if component.attributes.is_sparse -%}
+  {%-   set traits = merge(traits, "Sparse") -%}
+  {%- endif -%}
+  {%- if component.attributes.is_toggleable -%}
+  {%-   set traits = merge(traits, "Toggle") -%}
+  {%- endif %}
+  world.component<{{ component.name }}>(){% for trait in traits %}
+    .add(flecs::{{ trait }}){% endfor %};{%- endfor %}
 }
