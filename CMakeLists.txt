@@ -9,17 +9,20 @@ project(flatt CXX)
 
 add_executable(${PROJECT_NAME}
   src/main.cpp
+  src/hash.cpp
+  src/io.cpp
+  src/strings.cpp
+  src/templates.cpp
 )
 
 if(MSVC)
   target_compile_options(${PROJECT_NAME} PRIVATE /bigobj)
 endif()
 
-
-target_precompile_headers(${PROJECT_NAME}
-  PRIVATE
-    "src/pch.h"
-)
+# target_precompile_headers(${PROJECT_NAME}
+#   PRIVATE
+#     "src/pch.hpp"
+# )
 
 # Packages
 

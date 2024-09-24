@@ -1,8 +1,35 @@
-#include "utils/io.h"
-#include "utils/strings.h"
-#include "utils/templates.h"
+#include <array>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <numeric>
+#include <regex>
+#include <string>
+#include <vector>
+#include <optional>
 
-// #include "reflection/reflection.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
+#include <flatbuffers/reflection_generated.h>
+#include <flatbuffers/flatbuffers.h>
+#include <flatbuffers/util.h>
+#include <flatbuffers/minireflect.h>
+
+#include <inja/inja.hpp>
+#include <nlohmann/json.hpp>
+
+#include <cryptopp/sha.h>
+#include <cryptopp/hex.h>
+
+#include <sol/sol.hpp>
+
+#include <entt/core/hashed_string.hpp>
+
+#include "utils/io.hpp"
+#include "utils/strings.hpp"
+#include "utils/templates.hpp"
+#include "utils/hash.hpp"
 
 using namespace std;
 using namespace std::filesystem;
@@ -23,11 +50,11 @@ path find_executable(string bin) {
 
   auto current = cwd;
   while (true) {
-    if (io::exists(current / name)) {
+    if (filesystem::exists(current / name)) {
       return current / name;
     }
 
-    if (io::exists(current / "bin" / name)) {
+    if (filesystem::exists(current / "bin" / name)) {
       return current / "bin" / name;
     }
 
@@ -75,9 +102,23 @@ json flac_parse_documentation(const flatbuffers::Vector<flatbuffers::Offset<flat
   return documentation;
 }
 
+json flac_parse_documentation_text(const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *list) {
+  string doc = "";
+
+  if (list == nullptr) {
+    return doc;
+  }
+
+  for (int i = 0; i < list->size(); i++) {
+    doc += list->Get(i)->str() + "\n";
+  }
+
+  return doc.substr(0, doc.size() - 1);
+}
+
 optional<string> flatc_reflection(const path &file) {
   string location = std::tmpnam(nullptr);
-  io::create_directories(location);
+  filesystem::create_directories(location);
 
   auto bfbs = path(location) / path(file).filename().replace_extension(".bfbs");
 
@@ -101,15 +142,20 @@ optional<string> flatc_reflection(const path &file) {
 
   auto objects = schema.objects();
   auto enums = schema.enums();
+  auto services = schema.services();
+  auto files = schema.fbs_files();
 
   auto data = json({});
-  data["file_ident"] = schema.file_ident()->str();
-  data["file_ext"] = schema.file_ext()->str();
+  data["file_ident"] = json::string_t(schema.file_ident()->str());
+  data["file_ext"] = json::string_t(schema.file_ext()->str());
   data["tables"] = json::array({});
   data["structs"] = json::array({});
   data["enums"] = json::array({});
   data["services"] = json::array({});
+  data["files"] = json::array({});
   data["advanced_features"] = json({});
+
+  // Types
 
   data["advanced_features"]["advanced_array_features"] =
     (schema.advanced_features() & reflection::AdvancedFeatures::AdvancedArrayFeatures) != 0;
@@ -166,7 +212,6 @@ optional<string> flatc_reflection(const path &file) {
     }
   };
 
-
   auto type_info = [&](const reflection::Type *type) {
     auto name = type_name(type->base_type());
     auto data = json({
@@ -176,12 +221,16 @@ optional<string> flatc_reflection(const path &file) {
       { "size", type->base_size() },
       { "length", type->fixed_length() },
     });
+    data["element_type"] = type_name(type->element());
     if (name == "array" || name == "vector" || name == "vector64") {
-      data["element_type"] = type_name(type->element());
       data["element_size"] = type->element_size();
+    } else {
+      data["element_size"] = nullptr;
     }
     return data;
   };
+
+  // Objects
 
   for (auto i = 0; i < objects->size(); i++) {
     auto obj = objects->Get(i);
@@ -192,9 +241,12 @@ optional<string> flatc_reflection(const path &file) {
       { "name", name.substr(name.find_last_of('.') + 1) },
       { "namespace", name.substr(0, name.find_last_of('.')) },
       { "attributes", flac_parse_attributes(obj->attributes()) },
-      { "documentation", flac_parse_documentation(obj->documentation()) },
+      { "documentation", json({
+                           { "text", flac_parse_documentation_text(obj->documentation()) },
+                           { "lines", flac_parse_documentation(obj->documentation()) },
+                         }) },
       { "minalign", json::number_integer_t(obj->minalign()) },
-      { "file", obj->declaration_file()->str() },
+      { "declaration_file", obj->declaration_file()->str() },
       { "fields",
         [&]() {
           auto fields = json::array({});
@@ -211,15 +263,18 @@ optional<string> flatc_reflection(const path &file) {
               { "name", json::string_t(entry->name()->str()) },
               { "type", type_info(entry->type()) },
               { "attributes", flac_parse_attributes(entry->attributes()) },
-              { "documentation", flac_parse_documentation(entry->documentation()) },
+              { "documentation", json({
+                                   { "text", flac_parse_documentation_text(entry->documentation()) },
+                                   { "lines", flac_parse_documentation(entry->documentation()) },
+                                 }) },
               { "offset", json::number_integer_t(entry->offset()) },
               { "padding", json::number_integer_t(entry->padding()) },
 
-              { "is_key", entry->key() },
-              { "is_deprecated", entry->deprecated() },
-              { "is_optional", entry->optional() },
-              { "is_required", entry->required() },
-              { "is_offset64", entry->offset64() },
+              { "key", entry->key() },
+              { "deprecated", entry->deprecated() },
+              { "optional", entry->optional() },
+              { "required", entry->required() },
+              { "offset64", entry->offset64() },
 
               { "default_integer", entry->default_integer() },
               { "default_float", entry->default_real() },
@@ -238,9 +293,13 @@ optional<string> flatc_reflection(const path &file) {
     }
   }
 
+  // Enums
+
   for (auto i = 0; i < enums->size(); i++) {
     auto en = enums->Get(i);
     auto name = en->name()->str();
+
+    auto count = 0;
 
     bool has_values = false;
     int64_t min_value = 0, max_value = 0;
@@ -257,6 +316,7 @@ optional<string> flatc_reflection(const path &file) {
           min_value = value < min_value ? value : min_value;
           max_value = value > max_value ? value : max_value;
         }
+        count += 1;
       }
     }
 
@@ -266,13 +326,16 @@ optional<string> flatc_reflection(const path &file) {
       { "namespace", name.substr(0, name.find_last_of('.')) },
       { "type", type_info(en->underlying_type()) },
       { "attributes", flac_parse_attributes(en->attributes()) },
-      { "documentation", flac_parse_documentation(en->documentation()) },
+      { "documentation", json({
+                           { "text", flac_parse_documentation_text(en->documentation()) },
+                           { "lines", flac_parse_documentation(en->documentation()) },
+                         }) },
       { "min", json(nullptr) },
       { "max", json(nullptr) },
-      { "range", json(0) },
+      { "range", json(nullptr) },
       { "count", json(0) },
       { "is_union", en->is_union() },
-      { "file", en->declaration_file()->str() },
+      { "declaration_file", en->declaration_file()->str() },
       { "values",
         [&]() {
           auto values = json::array({});
@@ -287,7 +350,11 @@ optional<string> flatc_reflection(const path &file) {
             values.push_back({
               { "name", entry->name()->str() },
               { "value", json::number_integer_t(value) },
-              { "documentation", flac_parse_documentation(entry->documentation()) },
+              { "attributes", flac_parse_attributes(entry->attributes()) },
+              { "documentation", json({
+                                   { "text", flac_parse_documentation_text(entry->documentation()) },
+                                   { "lines", flac_parse_documentation(entry->documentation()) },
+                                 }) },
             });
           }
 
@@ -299,11 +366,45 @@ optional<string> flatc_reflection(const path &file) {
       type["min"] = json::number_integer_t(min_value);
       type["max"] = json::number_integer_t(max_value);
       type["range"] = json::number_integer_t(max_value - min_value);
-      type["count"] = json::number_integer_t(max_value - min_value + 1);
     }
+
+    type["count"] = json::number_integer_t(count);
 
     data["enums"].push_back(type);
   }
+
+  // Files
+  /*
+  for (auto i = 0; i < files->size(); i++) {
+    auto f = files->Get(i);
+    if (f->filename() == nullptr) {
+      continue;
+    }
+
+    auto file = json({
+      { "path", json::string_t(f->filename()->str()) },
+      { "includes",
+        [&]() {
+          auto includes = json::array({});
+
+          auto list = f->included_filenames();
+          if (list == nullptr) {
+            return includes;
+          }
+
+          for (int i = 0; i < list->size(); i++) {
+            auto entry = list->Get(i);
+            includes.push_back(json::string_t(entry->str()));
+          }
+
+          return includes;
+        }() },
+
+    });
+
+    data["files"].push_back(file);
+  }
+*/
 
   return data.dump(2);
 }
@@ -321,12 +422,12 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
     project_file /= "flatt.lua";
   }
 
-  if (!io::exists(project_file)) {
+  if (!filesystem::exists(project_file)) {
     spdlog::error("Unable to find project file: {}", project_file.string());
     return 1;
   }
 
-  project_file = io::absolute(project_file);
+  project_file = filesystem::absolute(project_file);
   auto project_dir = project_file.parent_path();
 
 #ifdef _WIN32
@@ -381,7 +482,7 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
 
   lua["file"] = lua.create_table();
   lua["file"]["exists"] = [](const string &file) {
-    return io::exists(file);
+    return filesystem::exists(file);
   };
   lua["file"]["read"] = [](const string &file) {
     auto [success, content] = io::read_file(file);
@@ -435,11 +536,8 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
     [](const std::string &value, const int length, const std::string &pad) {
       return str::padright(value, length, pad);
     });
-  lua["string"]["ends_with"] = [](const std::string &value, const std::string &match) {
-    return str::ends_with(value, match);
-  };
-  lua["string"]["starts_with"] = [](const std::string &value, const std::string &match) {
-    return str::starts_with(value, match);
+  lua["string"]["tokenize"] = [&](const std::string &value) {
+    return sol::as_table(str::tokenize(value));
   };
   lua["string"]["split"] = sol::overload(
     [&](const std::string &value, const std::string &delimiter) {
@@ -448,6 +546,12 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
     [&](const std::string &value, const std::string &delimiter, int limit) {
       return sol::as_table(str::split(value, delimiter, limit));
     });
+  lua["string"]["ends_with"] = [](const std::string &value, const std::string &match) {
+    return str::ends_with(value, match);
+  };
+  lua["string"]["starts_with"] = [](const std::string &value, const std::string &match) {
+    return str::starts_with(value, match);
+  };
   lua["string"]["trim"] = [](const std::string &value) {
     return str::trim_copy(value);
   };
@@ -457,62 +561,59 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
   lua["string"]["trim_right"] = [](const std::string &value) {
     return str::trim_right_copy(value);
   };
-  lua["string"]["explode"] = [&](const std::string &value) {
-    return sol::as_table(str::explode(value));
-  };
   lua["string"]["join"] = [](const sol::as_table_t<vector<string>> &parts, const string &delim = ",") {
     return str::join(parts.value(), delim);
   };
-  lua["string"]["lower_case"] = [](const string &value) {
-    return str::lower_case(value);
+  lua["string"]["to_lower"] = [](const string &value) {
+    return str::to_lower(value);
   };
-  lua["string"]["upper_case"] = [](const string &value) {
-    return str::upper_case(value);
+  lua["string"]["to_upper"] = [](const string &value) {
+    return str::to_upper(value);
   };
-  lua["string"]["ucfirst"] = [](const string &value) {
-    return str::ucfirst(value);
+  lua["string"]["to_upper_first"] = [](const string &value) {
+    return str::to_upper_first(value);
   };
-  lua["string"]["lcfirst"] = [](const string &value) {
-    return str::lcfirst(value);
+  lua["string"]["to_lower_first"] = [](const string &value) {
+    return str::to_lower_first(value);
   };
-  lua["string"]["snake_case"] = [](const string &value) {
-    return str::snake_case(value);
+  lua["string"]["to_snake"] = [](const string &value) {
+    return str::to_snake(value);
   };
-  lua["string"]["kebab_case"] = [](const string &value) {
-    return str::kebab_case(value);
+  lua["string"]["to_kebab"] = [](const string &value) {
+    return str::to_kebab(value);
   };
-  lua["string"]["pascal_case"] = [](const string &value) {
-    return str::pascal_case(value);
+  lua["string"]["to_pascal"] = [](const string &value) {
+    return str::to_pascal(value);
   };
-  lua["string"]["camel_case"] = [](const string &value) {
-    return str::camel_case(value);
+  lua["string"]["to_camel"] = [](const string &value) {
+    return str::to_camel(value);
   };
-  lua["string"]["const_case"] = [](const string &value) {
-    return str::const_case(value);
+  lua["string"]["to_const"] = [](const string &value) {
+    return str::to_const(value);
   };
-  lua["string"]["train_case"] = [](const string &value) {
-    return str::train_case(value);
+  lua["string"]["to_train"] = [](const string &value) {
+    return str::to_train(value);
   };
-  lua["string"]["ada_case"] = [](const string &value) {
-    return str::ada_case(value);
+  lua["string"]["to_ada"] = [](const string &value) {
+    return str::to_ada(value);
   };
-  lua["string"]["cobol_case"] = [](const string &value) {
-    return str::cobol_case(value);
+  lua["string"]["to_cobol"] = [](const string &value) {
+    return str::to_cobol(value);
   };
-  lua["string"]["dot_case"] = [](const string &value) {
-    return str::dot_case(value);
+  lua["string"]["to_dot"] = [](const string &value) {
+    return str::to_dot(value);
   };
-  lua["string"]["path_case"] = [](const string &value) {
-    return str::path_case(value);
+  lua["string"]["to_path"] = [](const string &value) {
+    return str::to_path(value);
   };
-  lua["string"]["space_case"] = [](const string &value) {
-    return str::space_case(value);
+  lua["string"]["to_space"] = [](const string &value) {
+    return str::to_space(value);
   };
-  lua["string"]["capital_case"] = [](const string &value) {
-    return str::capital_case(value);
+  lua["string"]["to_capital"] = [](const string &value) {
+    return str::to_capital(value);
   };
-  lua["string"]["cpp_case"] = [](const string &value) {
-    return str::cpp_case(value);
+  lua["string"]["to_cpp"] = [](const string &value) {
+    return str::to_cpp(value);
   };
 
   // templates
@@ -534,7 +635,7 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
     return flatc(project_dir, arguments.value());
   };
   lua["fb"]["reflect"] = [&](const string &schema) -> auto {
-    return flatc_reflection(io::absolute(schema));
+    return flatc_reflection(filesystem::absolute(schema));
   };
 
   lua.safe_script(
