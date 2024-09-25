@@ -18,7 +18,6 @@
 #include <filesystem>
 
 #include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 
 #include "./io.hpp"
 #include "./hash.hpp"

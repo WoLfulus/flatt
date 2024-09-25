@@ -18,18 +18,14 @@
 
 #include <inja/inja.hpp>
 #include <nlohmann/json.hpp>
-
-#include <cryptopp/sha.h>
-#include <cryptopp/hex.h>
-
 #include <sol/sol.hpp>
 
 #include <entt/core/hashed_string.hpp>
 
-#include "utils/io.hpp"
-#include "utils/strings.hpp"
-#include "utils/templates.hpp"
-#include "utils/hash.hpp"
+#include "io.hpp"
+#include "strings.hpp"
+#include "templates.hpp"
+#include "hash.hpp"
 
 using namespace std;
 using namespace std::filesystem;
@@ -76,7 +72,7 @@ int flatc(const path &working_dir, const vector<string> arguments) {
 }
 
 json flac_parse_attributes(const flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>> *list) {
-  auto attributes = json({});
+  auto attributes = json::object({});
   if (list == nullptr) {
     return attributes;
   }
@@ -104,7 +100,6 @@ json flac_parse_documentation(const flatbuffers::Vector<flatbuffers::Offset<flat
 
 json flac_parse_documentation_text(const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *list) {
   string doc = "";
-
   if (list == nullptr) {
     return doc;
   }
@@ -145,9 +140,12 @@ optional<string> flatc_reflection(const path &file) {
   auto services = schema.services();
   auto files = schema.fbs_files();
 
+  auto file_ident = schema.file_ident() == nullptr ? "" : schema.file_ident()->str();
+  auto file_ext = schema.file_ext() == nullptr ? "" : schema.file_ext()->str();
+
   auto data = json({});
-  data["file_ident"] = json::string_t(schema.file_ident()->str());
-  data["file_ext"] = json::string_t(schema.file_ext()->str());
+  data["file_ident"] = json::string_t(file_ident);
+  data["file_ext"] = json::string_t(file_ext);
   data["tables"] = json::array({});
   data["structs"] = json::array({});
   data["enums"] = json::array({});
@@ -171,6 +169,8 @@ optional<string> flatc_reflection(const path &file) {
     static_assert(reflection::BaseType::MaxBaseType == 19);
 
     switch (type) {
+    case reflection::BaseType::None:
+      return "none"s;
     case reflection::BaseType::UType:
       return "utype"s;
     case reflection::BaseType::Bool:
@@ -208,7 +208,8 @@ optional<string> flatc_reflection(const path &file) {
     case reflection::BaseType::Vector64:
       return "vector64"s;
     default:
-      return std::string(json(nullptr));
+      spdlog::error("Unknown type: {}", static_cast<int>(type));
+      return "unknown"s;
     }
   };
 
@@ -270,14 +271,14 @@ optional<string> flatc_reflection(const path &file) {
               { "offset", json::number_integer_t(entry->offset()) },
               { "padding", json::number_integer_t(entry->padding()) },
 
-              { "key", entry->key() },
-              { "deprecated", entry->deprecated() },
-              { "optional", entry->optional() },
-              { "required", entry->required() },
-              { "offset64", entry->offset64() },
+              { "key", json::boolean_t(entry->key()) },
+              { "deprecated", json::boolean_t(entry->deprecated()) },
+              { "optional", json::boolean_t(entry->optional()) },
+              { "required", json::boolean_t(entry->required()) },
+              { "offset64", json::boolean_t(entry->offset64()) },
 
-              { "default_integer", entry->default_integer() },
-              { "default_float", entry->default_real() },
+              { "default_integer", json::number_integer_t(entry->default_integer()) },
+              { "default_float", json::number_integer_t(entry->default_real()) },
             });
           }
 
@@ -374,7 +375,6 @@ optional<string> flatc_reflection(const path &file) {
   }
 
   // Files
-  /*
   for (auto i = 0; i < files->size(); i++) {
     auto f = files->Get(i);
     if (f->filename() == nullptr) {
@@ -404,7 +404,6 @@ optional<string> flatc_reflection(const path &file) {
 
     data["files"].push_back(file);
   }
-*/
 
   return data.dump(2);
 }

@@ -3,11 +3,10 @@
 
 #include "./hash.hpp"
 
-
 using namespace std;
 using namespace CryptoPP;
 
-string sha1(const string& data) {
+string hashes::sha1(const string& data) {
   using byte = CryptoPP::byte;
 
   byte digest[SHA1::DIGESTSIZE];

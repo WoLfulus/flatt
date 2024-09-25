@@ -8,28 +8,49 @@
   "enums": [],
   "file_ext": "",
   "file_ident": "",
+  "files": [
+    {
+      "includes": [
+        "//ecs_flecs.fbs"
+      ],
+      "path": "//ecs.fbs"
+    },
+    {
+      "includes": [],
+      "path": "//ecs_flecs.fbs"
+    }
+  ],
   "services": [],
   "structs": [
     {
       "attributes": {},
       "bytesize": 8,
-      "documentation": [],
+      "declaration_file": "//ecs.fbs",
+      "documentation": {
+        "lines": [],
+        "text": ""
+      },
       "fields": [
         {
           "attributes": {},
-          "default_float": 0.0,
+          "default_float": 0,
           "default_integer": 0,
-          "documentation": [],
+          "deprecated": false,
+          "documentation": {
+            "lines": [],
+            "text": ""
+          },
           "id": 0,
-          "is_deprecated": false,
-          "is_key": false,
-          "is_offset64": false,
-          "is_optional": false,
-          "is_required": false,
+          "key": false,
           "name": "x",
           "offset": 0,
+          "offset64": false,
+          "optional": false,
           "padding": 0,
+          "required": false,
           "type": {
+            "element_size": null,
+            "element_type": "none",
             "id": 2797886853,
             "index": -1,
             "length": 0,
@@ -39,19 +60,24 @@
         },
         {
           "attributes": {},
-          "default_float": 0.0,
+          "default_float": 0,
           "default_integer": 0,
-          "documentation": [],
+          "deprecated": false,
+          "documentation": {
+            "lines": [],
+            "text": ""
+          },
           "id": 1,
-          "is_deprecated": false,
-          "is_key": false,
-          "is_offset64": false,
-          "is_optional": false,
-          "is_required": false,
+          "key": false,
           "name": "y",
           "offset": 4,
+          "offset64": false,
+          "optional": false,
           "padding": 0,
+          "required": false,
           "type": {
+            "element_size": null,
+            "element_type": "none",
             "id": 2797886853,
             "index": -1,
             "length": 0,
@@ -60,7 +86,6 @@
           }
         }
       ],
-      "file": "//ecs.fbs",
       "id": 2197844016,
       "minalign": 4,
       "name": "Vector2",
@@ -72,23 +97,32 @@
       "attributes": {
         "archetype": "0"
       },
-      "documentation": [],
+      "declaration_file": "//ecs.fbs",
+      "documentation": {
+        "lines": [],
+        "text": ""
+      },
       "fields": [
         {
           "attributes": {},
-          "default_float": 0.0,
+          "default_float": 0,
           "default_integer": 0,
-          "documentation": [],
+          "deprecated": false,
+          "documentation": {
+            "lines": [],
+            "text": ""
+          },
           "id": 0,
-          "is_deprecated": false,
-          "is_key": false,
-          "is_offset64": false,
-          "is_optional": true,
-          "is_required": false,
+          "key": false,
           "name": "position",
           "offset": 4,
+          "offset64": false,
+          "optional": true,
           "padding": 0,
+          "required": false,
           "type": {
+            "element_size": null,
+            "element_type": "none",
             "id": 3343205242,
             "index": 1,
             "length": 0,
@@ -98,19 +132,24 @@
         },
         {
           "attributes": {},
-          "default_float": 0.0,
+          "default_float": 0,
           "default_integer": 0,
-          "documentation": [],
+          "deprecated": false,
+          "documentation": {
+            "lines": [],
+            "text": ""
+          },
           "id": 1,
-          "is_deprecated": false,
-          "is_key": false,
-          "is_offset64": false,
-          "is_optional": true,
-          "is_required": false,
+          "key": false,
           "name": "velocity",
           "offset": 6,
+          "offset64": false,
+          "optional": true,
           "padding": 0,
+          "required": false,
           "type": {
+            "element_size": null,
+            "element_type": "none",
             "id": 3343205242,
             "index": 4,
             "length": 0,
@@ -119,7 +158,6 @@
           }
         }
       ],
-      "file": "//ecs.fbs",
       "id": 477166624,
       "minalign": 1,
       "name": "Player",
@@ -129,23 +167,32 @@
       "attributes": {
         "component": "0"
       },
-      "documentation": [],
+      "declaration_file": "//ecs.fbs",
+      "documentation": {
+        "lines": [],
+        "text": ""
+      },
       "fields": [
         {
           "attributes": {},
-          "default_float": 0.0,
+          "default_float": 0,
           "default_integer": 0,
-          "documentation": [],
+          "deprecated": false,
+          "documentation": {
+            "lines": [],
+            "text": ""
+          },
           "id": 0,
-          "is_deprecated": false,
-          "is_key": false,
-          "is_offset64": false,
-          "is_optional": true,
-          "is_required": false,
+          "key": false,
           "name": "value",
           "offset": 4,
+          "offset64": false,
+          "optional": true,
           "padding": 0,
+          "required": false,
           "type": {
+            "element_size": null,
+            "element_type": "none",
             "id": 3343205242,
             "index": 3,
             "length": 0,
@@ -154,7 +201,6 @@
           }
         }
       ],
-      "file": "//ecs.fbs",
       "id": 3799987242,
       "minalign": 1,
       "name": "Position",
@@ -166,9 +212,12 @@
         "is_singleton": "0",
         "is_sparse": "0"
       },
-      "documentation": [],
+      "declaration_file": "//ecs.fbs",
+      "documentation": {
+        "lines": [],
+        "text": ""
+      },
       "fields": [],
-      "file": "//ecs.fbs",
       "id": 6222351,
       "minalign": 1,
       "name": "Status",
@@ -178,23 +227,32 @@
       "attributes": {
         "component": "0"
       },
-      "documentation": [],
+      "declaration_file": "//ecs.fbs",
+      "documentation": {
+        "lines": [],
+        "text": ""
+      },
       "fields": [
         {
           "attributes": {},
-          "default_float": 0.0,
+          "default_float": 0,
           "default_integer": 0,
-          "documentation": [],
+          "deprecated": false,
+          "documentation": {
+            "lines": [],
+            "text": ""
+          },
           "id": 0,
-          "is_deprecated": false,
-          "is_key": false,
-          "is_offset64": false,
-          "is_optional": true,
-          "is_required": false,
+          "key": false,
           "name": "value",
           "offset": 4,
+          "offset64": false,
+          "optional": true,
           "padding": 0,
+          "required": false,
           "type": {
+            "element_size": null,
+            "element_type": "none",
             "id": 3343205242,
             "index": 3,
             "length": 0,
@@ -203,7 +261,6 @@
           }
         }
       ],
-      "file": "//ecs.fbs",
       "id": 3124789842,
       "minalign": 1,
       "name": "Velocity",

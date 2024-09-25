@@ -1,5 +1,7 @@
 #include <iomanip>
 
+#include <spdlog/spdlog.h>
+
 #include "./strings.hpp"
 #include "./templates.hpp"
 
