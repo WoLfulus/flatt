@@ -1,0 +1,2 @@
+build --action_env=VCPKG_ROOT
+build --action_env=VCPKG_DEFAULT_TRIPLET
