@@ -415,14 +415,36 @@ auto on_script_error(lua_State *, sol::protected_function_result pfr) {
 }
 
 int run_project(const path &entrypoint, const vector<string> &arguments) {
+  auto project_found = false;
   auto project_file = path(entrypoint);
+  auto project_files = vector<path>{};
 
   if (filesystem::is_directory(project_file)) {
-    project_file /= "flatt";
+    project_files.push_back(project_file / "flatt.lua");
+    project_files.push_back(project_file / "flatt.tl");
+    project_files.push_back(project_file / "init.lua");
+    project_files.push_back(project_file / "init.tl");
+    project_files.push_back(project_file / "main.lua");
+    project_files.push_back(project_file / "main.tl");
+  } else {
+    project_files.push_back(path(project_file.string() + ".lua"));
+    project_files.push_back(path(project_file.string() + ".tl"));
+    project_files.push_back(project_file);
   }
 
-  if (!filesystem::exists(project_file)) {
-    spdlog::error("Unable to find project file: {}", project_file.string());
+  for (auto file : project_files) {
+    if (filesystem::exists(file)) {
+      project_found = true;
+      project_file = file;
+      break;
+    }
+  }
+
+  if (!filesystem::exists(project_file) || !project_found) {
+    spdlog::error("Unable to find project file, looked into:");
+    for (auto file : project_files) {
+      spdlog::error("  - {}", file.string());
+    }
     return 1;
   }
 
@@ -486,28 +508,37 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
 
   // files
 
-  lua["file"] = lua.create_table();
-  lua["file"]["exists"] = [](const string &file) {
+  lua["fs"] = lua.create_table();
+  lua["fs"]["exists"] = [](const string &file) {
     return filesystem::exists(file);
   };
-  lua["file"]["read"] = [](const string &file) {
+  lua["fs"]["is_dir"] = [](const string &value) {
+    return (filesystem::exists(value) && filesystem::is_directory(value));
+  };
+  lua["fs"]["is_file"] = [](const string &value) {
+    return (filesystem::exists(value) && !filesystem::is_directory(value));
+  };
+  lua["fs"]["read_file"] = [](const string &file) {
     auto [success, content] = io::read_file(file);
     return content;
   };
-  lua["file"]["write"] = [](const string &file, const string &content) {
+  lua["fs"]["write_file"] = [](const string &file, const string &content) {
     return io::write_file(file, content);
   };
-  lua["file"]["hash"] = [](const string &file) {
-    return io::hash_file(file);
-  };
-
-  // dir
-
-  lua["dir"] = lua.create_table();
-  lua["dir"]["hash"] = [](const std::string &path) {
+  lua["fs"]["hash_dir"] = [](const std::string &path) {
     return io::hash_dir(path);
   };
-  lua["dir"]["list_files"] = [](const std::string &path) {
+  lua["fs"]["hash_file"] = [](const string &file) {
+    return io::hash_file(file);
+  };
+  lua["fs"]["hash"] = [](const string &file) {
+    if (filesystem::is_directory(file)) {
+      return io::hash_dir(file);
+    } else {
+      return io::hash_file(file);
+    }
+  };
+  lua["fs"]["list_files"] = [](const std::string &path) {
     auto files = io::list_files(path);
     auto paths = vector<string>{};
     for (auto file : files) {
@@ -516,11 +547,26 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
     return sol::as_table(paths);
   };
 
-  lua["dir"]["list_dirs"] = [](const std::string &path) {
-    auto files = io::list_dirs(path);
+  lua["fs"]["list_dirs"] = [](const std::string &path) {
+    auto values = io::list_dirs(path);
     auto paths = vector<string>{};
-    for (auto file : files) {
-      paths.push_back(file.string());
+    for (auto value : values) {
+      paths.push_back(value.string());
+    }
+    return sol::as_table(paths);
+  };
+
+  lua["fs"]["list"] = [](const std::string &path) {
+    auto paths = vector<string>{};
+
+    auto values = io::list_dirs(path);
+    for (auto value : values) {
+      paths.push_back(value.string());
+    }
+
+    values = io::list_files(path);
+    for (auto value : values) {
+      paths.push_back(value.string());
     }
     return sol::as_table(paths);
   };
@@ -636,25 +682,21 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
     return io::shell(command, arguments.value(), path);
   };
 
-  lua["fb"] = lua.create_table();
-  lua["fb"]["compile"] = [&](const sol::as_table_t<vector<string>> &arguments) {
+  lua["flatbuffers"] = lua.create_table();
+  lua["flatbuffers"]["compile"] = [&](const sol::as_table_t<vector<string>> &arguments) {
     return flatc(project_dir, arguments.value());
   };
-  lua["fb"]["reflect"] = [&](const string &schema) -> auto {
+  lua["flatbuffers"]["reflect"] = [&](const string &schema) -> auto {
     return flatc_reflection(filesystem::absolute(schema));
   };
 
   lua.safe_script(
     R"(
-    if package.path ~= "" then
-      package.path = package.path .. ";"
-    end
-    package.path = package.path .. ";" .. flatt.project_dir .. "/?.lua;"
-
-    print("project_dir: "..flatt.project_dir)
-    print("project_file: "..flatt.project_file)
-
-  )",
+      if package.path ~= "" then
+        package.path = package.path .. ";"
+      end
+      package.path = package.path .. ";" .. flatt.project_dir .. "/?.lua;"
+    )",
     on_script_error);
 
   auto has_tl = lua
@@ -670,18 +712,16 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
 #include "bootstrap/tl.lua.h"
 
   if (!has_tl) {
-    lua.require_script("tl", "print('injecting tl')\n" + tl_lua_str);
+    lua.require_script("tl", tl_lua_str);
   }
 
   lua["__main__"] = project_file.string();
 
   auto result = lua.safe_script(
     R"(
-    print("requiring teal")
-    require("tl").loader()
-    print("requiring main")
-    require(__main__)
-  )",
+      require("tl").loader()
+      require(__main__)
+    )",
     on_script_error);
 
   if (!result.valid()) {
