@@ -5,6 +5,8 @@ load_env(${CMAKE_CURRENT_SOURCE_DIR})
 
 project(flatt CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Executable
 
 add_executable(${PROJECT_NAME}
@@ -56,12 +58,15 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${LUA_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LUA_LIBRARIES})
 
 # Post
-
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
+#set(BOOTSTRAP_CODE "")
+#file(GLOB_RECURSE BOOTSTRAP_FILES "src/bootstrap/*_*.lua")
+#foreach(BOOTSTRAP_FILE ${BOOTSTRAP_FILES})
+#  file(READ ${BOOTSTRAP_FILE} LOADED_CODE)
+#  string(APPEND BOOTSTRAP_CODE "${LOADED_CODE}\n\n")
+#endforeach()
+#
+#file(WRITE "src/bootstrap/bootstrap.lua" "${BOOTSTRAP_CODE}")
+#file(WRITE "src/bootstrap.inc" "\nR(\"\n${BOOTSTRAP_CODE}\n\n\")\n")
 
 set(TRIPLET_NAME ${VCPKG_TARGET_TRIPLET})
 if(${VCPKG_HOST_TRIPLET})
@@ -70,31 +75,6 @@ endif()
 
 find_program(FLATC_BIN NAMES flatc PATHS "${VCPKG_INSTALLED_DIR}/${TRIPLET_NAME}/tools/flatbuffers" REQUIRED)
 message(STATUS "Using flatc: ${FLATC_BIN}")
-
-
-# add_custom_command(
-#   TARGET ${PROJECT_NAME} PRE_BUILD
-#   COMMAND
-#     (${FLATC_BIN}
-#       --gen-all
-#       --gen-mutable
-#       --gen-compare
-#       --gen-object-api
-#       --gen-name-strings
-#       --force-empty
-#       --force-empty-vectors
-#       --reflect-types
-#       --reflect-names
-#       --cpp
-#       --cpp-include array
-#       --cpp-std c++17
-#       --cpp-static-reflection
-#       --filename-suffix ""
-#       -o "${CMAKE_CURRENT_SOURCE_DIR}/src/reflection"
-#       "${CMAKE_CURRENT_SOURCE_DIR}/src/reflection/reflection.fbs")
-#   VERBATIM
-# )
-
 
 add_custom_command(
   TARGET ${PROJECT_NAME} POST_BUILD

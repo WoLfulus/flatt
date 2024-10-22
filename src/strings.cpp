@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip>
 #include <filesystem>
+#include <iterator>
 
 #include <entt/core/hashed_string.hpp>
 

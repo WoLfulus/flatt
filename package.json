@@ -1,6 +1,6 @@
 {
   "name": "flatt",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Flatbuffers scriptable code generation tool.",
   "keywords": [
     "flatbuffers",
@@ -36,6 +36,6 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "execa": "^9.4.0"
+    "execa": "^9.4.1"
   }
 }

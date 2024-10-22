@@ -1,4 +1,19 @@
 {
   "version": 6,
-  "include": ["cmake/presets/win.json", "cmake/presets/linux.json"]
+  "include": ["cmake/presets/win.json", "cmake/presets/linux.json"],
+  "workflowPresets": [
+    {
+      "name": "win-x64-debug",
+      "steps": [
+        {
+          "name": "win-x64-debug",
+          "type": "configure"
+        },
+        {
+          "name": "win-x64-debug",
+          "type": "build"
+        }
+      ]
+    }
+  ]
 }

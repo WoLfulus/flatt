@@ -418,7 +418,7 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
   auto project_file = path(entrypoint);
 
   if (filesystem::is_directory(project_file)) {
-    project_file /= "flatt.lua";
+    project_file /= "flatt";
   }
 
   if (!filesystem::exists(project_file)) {
@@ -427,7 +427,15 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
   }
 
   project_file = filesystem::absolute(project_file);
+
   auto project_dir = project_file.parent_path();
+
+  if (project_file.extension() == ".lua" || project_file.extension() == ".tl") {
+    project_file = project_file.replace_extension("");
+  }
+
+  project_file = "./" + filesystem::relative(project_file, project_dir).string();
+
 
 #ifdef _WIN32
   SetCurrentDirectory(project_dir.string().c_str());
@@ -435,18 +443,17 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
   chdir(project_dir.string().c_str());
 #endif
 
-
   sol::state lua;
   lua.open_libraries(
     sol::lib::base, sol::lib::package, sol::lib::coroutine, sol::lib::string, sol::lib::os, sol::lib::math,
     sol::lib::table, sol::lib::debug, sol::lib::bit32, sol::lib::io, sol::lib::ffi, sol::lib::jit, sol::lib::utf8);
-
 
   // variables
 
   lua["flatt"] = lua.create_table();
   lua["flatt"]["executable_dir"] = io::get_current_executable_directory().string();
   lua["flatt"]["project_dir"] = project_dir.string();
+  lua["flatt"]["project_file"] = project_file.string();
   lua["flatt"]["argv"] = arguments;
 
   // logs
@@ -520,105 +527,105 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
 
   // string
 
-  // lua["string"] = lua.create_table();
-  lua["string"]["pad_left"] = sol::overload(
+  lua["str"] = lua.create_table();
+  lua["str"]["pad_left"] = sol::overload(
     [](const std::string &value, const int length) {
       return str::padleft(value, length, " ");
     },
     [](const std::string &value, const int length, const std::string &pad) {
       return str::padleft(value, length, pad);
     });
-  lua["string"]["pad_right"] = sol::overload(
+  lua["str"]["pad_right"] = sol::overload(
     [](const std::string &value, const int length) {
       return str::padleft(value, length, " ");
     },
     [](const std::string &value, const int length, const std::string &pad) {
       return str::padright(value, length, pad);
     });
-  lua["string"]["tokenize"] = [&](const std::string &value) {
+  lua["str"]["tokenize"] = [&](const std::string &value) {
     return sol::as_table(str::tokenize(value));
   };
-  lua["string"]["split"] = sol::overload(
+  lua["str"]["split"] = sol::overload(
     [&](const std::string &value, const std::string &delimiter) {
       return sol::as_table(str::split(value, delimiter));
     },
     [&](const std::string &value, const std::string &delimiter, int limit) {
       return sol::as_table(str::split(value, delimiter, limit));
     });
-  lua["string"]["ends_with"] = [](const std::string &value, const std::string &match) {
+  lua["str"]["ends_with"] = [](const std::string &value, const std::string &match) {
     return str::ends_with(value, match);
   };
-  lua["string"]["starts_with"] = [](const std::string &value, const std::string &match) {
+  lua["str"]["starts_with"] = [](const std::string &value, const std::string &match) {
     return str::starts_with(value, match);
   };
-  lua["string"]["trim"] = [](const std::string &value) {
+  lua["str"]["trim"] = [](const std::string &value) {
     return str::trim_copy(value);
   };
-  lua["string"]["trim_left"] = [](const std::string &value) {
+  lua["str"]["trim_left"] = [](const std::string &value) {
     return str::trim_left_copy(value);
   };
-  lua["string"]["trim_right"] = [](const std::string &value) {
+  lua["str"]["trim_right"] = [](const std::string &value) {
     return str::trim_right_copy(value);
   };
-  lua["string"]["join"] = [](const sol::as_table_t<vector<string>> &parts, const string &delim = ",") {
+  lua["str"]["join"] = [](const sol::as_table_t<vector<string>> &parts, const string &delim = ",") {
     return str::join(parts.value(), delim);
   };
-  lua["string"]["to_lower"] = [](const string &value) {
+  lua["str"]["to_lower"] = [](const string &value) {
     return str::to_lower(value);
   };
-  lua["string"]["to_upper"] = [](const string &value) {
+  lua["str"]["to_upper"] = [](const string &value) {
     return str::to_upper(value);
   };
-  lua["string"]["to_upper_first"] = [](const string &value) {
+  lua["str"]["to_upper_first"] = [](const string &value) {
     return str::to_upper_first(value);
   };
-  lua["string"]["to_lower_first"] = [](const string &value) {
+  lua["str"]["to_lower_first"] = [](const string &value) {
     return str::to_lower_first(value);
   };
-  lua["string"]["to_snake"] = [](const string &value) {
+  lua["str"]["to_snake"] = [](const string &value) {
     return str::to_snake(value);
   };
-  lua["string"]["to_kebab"] = [](const string &value) {
+  lua["str"]["to_kebab"] = [](const string &value) {
     return str::to_kebab(value);
   };
-  lua["string"]["to_pascal"] = [](const string &value) {
+  lua["str"]["to_pascal"] = [](const string &value) {
     return str::to_pascal(value);
   };
-  lua["string"]["to_camel"] = [](const string &value) {
+  lua["str"]["to_camel"] = [](const string &value) {
     return str::to_camel(value);
   };
-  lua["string"]["to_const"] = [](const string &value) {
+  lua["str"]["to_const"] = [](const string &value) {
     return str::to_const(value);
   };
-  lua["string"]["to_train"] = [](const string &value) {
+  lua["str"]["to_train"] = [](const string &value) {
     return str::to_train(value);
   };
-  lua["string"]["to_ada"] = [](const string &value) {
+  lua["str"]["to_ada"] = [](const string &value) {
     return str::to_ada(value);
   };
-  lua["string"]["to_cobol"] = [](const string &value) {
+  lua["str"]["to_cobol"] = [](const string &value) {
     return str::to_cobol(value);
   };
-  lua["string"]["to_dot"] = [](const string &value) {
+  lua["str"]["to_dot"] = [](const string &value) {
     return str::to_dot(value);
   };
-  lua["string"]["to_path"] = [](const string &value) {
+  lua["str"]["to_path"] = [](const string &value) {
     return str::to_path(value);
   };
-  lua["string"]["to_space"] = [](const string &value) {
+  lua["str"]["to_space"] = [](const string &value) {
     return str::to_space(value);
   };
-  lua["string"]["to_capital"] = [](const string &value) {
+  lua["str"]["to_capital"] = [](const string &value) {
     return str::to_capital(value);
   };
-  lua["string"]["to_cpp"] = [](const string &value) {
+  lua["str"]["to_cpp"] = [](const string &value) {
     return str::to_cpp(value);
   };
 
   // templates
 
   lua["template"] = lua.create_table();
-  lua["template"]["render_string"] = [](const string &source, const string &data) {
+  lua["template"]["render"] = [](const string &source, const string &data) {
     auto engine = templates::engine();
     return engine.render(source, json::parse(data));
   };
@@ -639,22 +646,44 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
 
   lua.safe_script(
     R"(
-      --[[
-        flatt "standard" library
-      ]]
+    if package.path ~= "" then
+      package.path = package.path .. ";"
+    end
+    package.path = package.path .. ";" .. flatt.project_dir .. "/?.lua;"
 
-      -- add project directory to package dir
-      if package.path ~= "" then
-        package.path = package.path .. ";"
-      end
-      package.path = package.path .. flatt.project_dir .. "/?.lua"
+    print("project_dir: "..flatt.project_dir)
+    print("project_file: "..flatt.project_file)
 
-      -- more
-      -- ...
-    )",
+  )",
     on_script_error);
 
-  auto result = lua.safe_script_file(project_file.string(), on_script_error);
+  auto has_tl = lua
+                  .safe_script(R"(
+    local __p__, __m__ = pcall(require, 'tl');
+    if __p__ then
+      return true
+    else
+      return false
+    end
+  )")
+                  .get<bool>();
+#include "bootstrap/tl.lua.h"
+
+  if (!has_tl) {
+    lua.require_script("tl", "print('injecting tl')\n" + tl_lua_str);
+  }
+
+  lua["__main__"] = project_file.string();
+
+  auto result = lua.safe_script(
+    R"(
+    print("requiring teal")
+    require("tl").loader()
+    print("requiring main")
+    require(__main__)
+  )",
+    on_script_error);
+
   if (!result.valid()) {
     return -1;
   }
@@ -694,7 +723,7 @@ int main(int argc, const char *argv[]) {
   std::copy(argv, argv + argc, std::back_inserter(arguments));
 
   if (arguments.size() < 2) {
-    arguments.push_back("./flatt.lua");
+    arguments.push_back("./flatt");
   }
 
   auto file = arguments[1];
