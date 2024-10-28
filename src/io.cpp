@@ -10,6 +10,9 @@
   #include <windows.h>
 #endif
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -26,18 +29,27 @@
 using namespace std;
 using namespace std::filesystem;
 
+static std::string executable_path = "";
+
 path io::get_file_directory(string p) {
   return path(p.c_str()).parent_path();
 }
 
+std::filesystem::path io::set_current_executable(const std::string& path) {
+  executable_path = path;
+  return executable_path;
+}
+
 path io::get_current_executable() {
-  char buffer[2048];
 #ifdef _WIN32
-  GetModuleFileNameA(nullptr, buffer, sizeof(buffer));
-#else
-  strcpy_s(buffer, __argv[0]);
+  char buffer[4098];
+  memset(buffer, 0, sizeof(buffer));
+  if (executable_path.empty()) {
+    GetModuleFileNameA(nullptr, buffer, sizeof(buffer));
+    executable_path = std::string(buffer);
+  }
 #endif
-  return filesystem::path(std::string(buffer));
+  return filesystem::path(std::string(executable_path));
 }
 
 path io::get_current_executable_directory() {

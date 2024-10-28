@@ -942,6 +942,8 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
 
 int main(int argc, const char *argv[]) {
 
+  io::set_current_executable(argv[0]);
+
   auto console = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
   auto logger = std::make_shared<spdlog::logger>("console", console);
   logger->set_level(spdlog::level::trace);

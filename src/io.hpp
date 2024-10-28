@@ -9,6 +9,7 @@ namespace io {
 
   std::filesystem::path get_file_directory(std::string p);
 
+  std::filesystem::path set_current_executable(const std::string& path);
   std::filesystem::path get_current_executable();
   std::filesystem::path get_current_executable_directory();
 
