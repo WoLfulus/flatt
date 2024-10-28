@@ -772,6 +772,7 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
   result = lua.safe_script(R"(
     do
       local __cfg = require("luarocks.core.cfg")
+      __cfg.project_dir = flatt_project_root
       __cfg.init()
 
       local __fs = require("luarocks.fs")
@@ -843,11 +844,6 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
         ok = locks.init("flatt_project", flatt_project_directory)
       end
 
-      print("...")
-
-      print(package.path)
-      print(package.cpath)
-
       if not rocklist then
         rocklist = {
           dependencies = {}
@@ -858,11 +854,6 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
         end
       end
 
-      print("rocklist", rocklist.dependencies)
-      for k,v in pairs(rocklist.dependencies) do
-        print(k, v)
-      end
-
       _G["rock"] = function (name)
         local fs = require("flatt.fs")
         local project = require("flatt.project")
@@ -870,7 +861,6 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
         if name ~= nil then
           local __package__, __module__ = pcall(require, name)
           if __package__ then
-            print("module found")
             return __module__
           end
 
@@ -922,9 +912,6 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
 
       package.path = lr_util.LQ(lr_lpath..";")..package.path
       package.cpath = lr_util.LQ(lr_lcpath..";")..package.cpath
-
-      print(package.path)
-      print(package.cpath)
     end
   )",
     on_script_error);
