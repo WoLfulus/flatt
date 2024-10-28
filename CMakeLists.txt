@@ -18,6 +18,10 @@ add_executable(${PROJECT_NAME}
   src/modules.cpp
 )
 
+target_compile_definitions(${PROJECT_NAME} PUBLIC
+  SOL_ALL_SAFETIES_ON=1
+)
+
 if(MSVC)
   target_compile_options(${PROJECT_NAME} PRIVATE /bigobj)
 endif()
