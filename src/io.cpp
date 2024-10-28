@@ -30,13 +30,18 @@ path io::get_file_directory(string p) {
   return path(p.c_str()).parent_path();
 }
 
-path io::get_current_executable_directory() {
+path io::get_current_executable() {
   char buffer[2048];
 #ifdef _WIN32
   GetModuleFileNameA(nullptr, buffer, sizeof(buffer));
+#else
+  strcpy_s(buffer, __argv[0]);
 #endif
+  return filesystem::path(std::string(buffer));
+}
 
-  return get_file_directory(buffer);
+path io::get_current_executable_directory() {
+  return get_file_directory(get_current_executable().string());
 }
 
 pair<bool, string> io::read_file(path p) {

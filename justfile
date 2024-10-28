@@ -104,3 +104,18 @@ build config="choose":
   just build all
   wsl --exec bash -i -c "just configure all"
   wsl --exec bash -i -c "just build all"
+
+@run-example name="choose":
+  @just {{ if name == "choose" { "run-example-choose" } else { "run-example-project" } }} {{ name }}
+
+[private]
+@list-examples:
+  ls examples
+
+[private]
+@run-example-choose name:
+  example=`gum choose $(just list-examples)` && just run-example $example
+
+[private]
+@run-example-project name:
+  ./dist/win-x64-debug/flatt.exe "./examples/{{ name }}"

@@ -1,9 +1,3 @@
--- imports
-
-local array = require("array")
-local lunajson = require("lunajson")
-local inspect = require("inspect")
-
 -- cli options
 
 flatt.log.set_level("info")
@@ -27,10 +21,6 @@ if reflection == "" then
   flatt.log.error("Failed to generate type information...")
   return 1
 end
-
--- decode type information into lua objects
-
-local reflection = lunajson.decode(reflection)
 
 -- generate a version string for the given schema
 

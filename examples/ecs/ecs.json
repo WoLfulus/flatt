@@ -23,7 +23,7 @@
   "services": [],
   "structs": [
     {
-      "attributes": {},
+      "attributes": [],
       "bytesize": 8,
       "declaration_file": "//ecs.fbs",
       "documentation": {
@@ -32,7 +32,7 @@
       },
       "fields": [
         {
-          "attributes": {},
+          "attributes": [],
           "default_float": 0,
           "default_integer": 0,
           "deprecated": false,
@@ -49,9 +49,8 @@
           "padding": 0,
           "required": false,
           "type": {
-            "element_size": null,
             "element_type": "none",
-            "id": 2797886853,
+            "id": -1497080443,
             "index": -1,
             "length": 0,
             "name": "float",
@@ -59,7 +58,7 @@
           }
         },
         {
-          "attributes": {},
+          "attributes": [],
           "default_float": 0,
           "default_integer": 0,
           "deprecated": false,
@@ -76,9 +75,8 @@
           "padding": 0,
           "required": false,
           "type": {
-            "element_size": null,
             "element_type": "none",
-            "id": 2797886853,
+            "id": -1497080443,
             "index": -1,
             "length": 0,
             "name": "float",
@@ -86,7 +84,7 @@
           }
         }
       ],
-      "id": 2197844016,
+      "id": -2097123280,
       "minalign": 4,
       "name": "Vector2",
       "namespace": "Vector2"
@@ -104,7 +102,7 @@
       },
       "fields": [
         {
-          "attributes": {},
+          "attributes": [],
           "default_float": 0,
           "default_integer": 0,
           "deprecated": false,
@@ -121,9 +119,8 @@
           "padding": 0,
           "required": false,
           "type": {
-            "element_size": null,
             "element_type": "none",
-            "id": 3343205242,
+            "id": -951762054,
             "index": 1,
             "length": 0,
             "name": "obj",
@@ -131,7 +128,7 @@
           }
         },
         {
-          "attributes": {},
+          "attributes": [],
           "default_float": 0,
           "default_integer": 0,
           "deprecated": false,
@@ -148,9 +145,8 @@
           "padding": 0,
           "required": false,
           "type": {
-            "element_size": null,
             "element_type": "none",
-            "id": 3343205242,
+            "id": -951762054,
             "index": 4,
             "length": 0,
             "name": "obj",
@@ -174,7 +170,7 @@
       },
       "fields": [
         {
-          "attributes": {},
+          "attributes": [],
           "default_float": 0,
           "default_integer": 0,
           "deprecated": false,
@@ -191,9 +187,8 @@
           "padding": 0,
           "required": false,
           "type": {
-            "element_size": null,
             "element_type": "none",
-            "id": 3343205242,
+            "id": -951762054,
             "index": 3,
             "length": 0,
             "name": "obj",
@@ -201,7 +196,7 @@
           }
         }
       ],
-      "id": 3799987242,
+      "id": -494980054,
       "minalign": 1,
       "name": "Position",
       "namespace": "Position"
@@ -234,7 +229,7 @@
       },
       "fields": [
         {
-          "attributes": {},
+          "attributes": [],
           "default_float": 0,
           "default_integer": 0,
           "deprecated": false,
@@ -251,9 +246,8 @@
           "padding": 0,
           "required": false,
           "type": {
-            "element_size": null,
             "element_type": "none",
-            "id": 3343205242,
+            "id": -951762054,
             "index": 3,
             "length": 0,
             "name": "obj",
@@ -261,7 +255,7 @@
           }
         }
       ],
-      "id": 3124789842,
+      "id": -1170177454,
       "minalign": 1,
       "name": "Velocity",
       "namespace": "Velocity"

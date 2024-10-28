@@ -15,6 +15,7 @@ add_executable(${PROJECT_NAME}
   src/io.cpp
   src/strings.cpp
   src/templates.cpp
+  src/modules.cpp
 )
 
 if(MSVC)

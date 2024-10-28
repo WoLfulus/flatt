@@ -1,9 +1,13 @@
--- imports
+luarocks_enable()
 
-local json = require("lunajson")
+local fs = require("flatt.fs")
+local strings = require("flatt.strings")
+local log = require("flatt.logger")
+local templates = require("flatt.templates")
+local flatbuffers = require("flatbuffers")
 
 -- compile fbs
-local generated = fb.compile({
+local generated = flatbuffers.compile({
   "--gen-all",
   "--gen-onefile",
   "--gen-mutable",
@@ -35,16 +39,13 @@ if not generated then
 end
 
 -- type information
-local reflection_json = fb.reflect("./ecs.fbs")
-if reflection_json == "" then
+local reflection = flatbuffers.reflect("./ecs.fbs")
+if not reflection then
   log.error("Failed to generate type information...")
   return 1
 end
 
-local reflection = json.decode(reflection_json)
-
--- dump to local json for debugging
-file.write("ecs.json", reflection_json)
+fs.write_json("ecs.json", reflection)
 
 -- manipulate reflection data and render templates
 local components = {}
@@ -53,8 +54,8 @@ for _, current in pairs(reflection.tables) do
     current.attributes.is_toggleable = current.attributes.is_toggleable or false
     current.attributes.is_singleton = current.attributes.is_singleton or false
     current.attributes.is_sparse = current.attributes.is_sparse or false
-    current.name_snake = string.snake_case(current.name)
-    current.namespace_path = string.cpp_case(current.namespace)
+    current.name_snake = strings.snake(current.name)
+    current.namespace_path = strings.cpp(current.namespace)
     table.insert(components, current)
   end
 end
@@ -66,24 +67,25 @@ end
 
 -- generate code
 
-local template_data = json.encode({
+local data = {
   components = components,
   enums = enums,
-})
+}
 
-local files = dir.list_files("./template")
-for _,tpl in pairs(files) do
-  local source = './template/' .. tpl
-  local destination = "./src/" .. tpl
+local files = fs.list_files("./template")
+for _, file in pairs(files) do
+  local source = './template/' .. file
+  local target = "./src/" .. file
+  local input = fs.read_file(source)
+  local output = input
 
-  if string.ends_with(source, ".j2") then
-    -- Renders the template
-    destination = destination:sub(0, #destination - 3)
-    file.write(destination, template.render_string(file.read(source), template_data))
-  else
-    -- Copy the file
-    file.write(destination, file.read(source))
+  if strings.ends_with(source, ".j2") then
+    target = target:sub(0, #target - 3)
+    output = templates.render(input, data)
   end
+
+  log.warn("writing file to " .. target)
+  fs.write_file(target, output)
 end
 
 -- finish

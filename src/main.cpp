@@ -26,6 +26,8 @@
 #include "strings.hpp"
 #include "templates.hpp"
 #include "hash.hpp"
+#include "modules.hpp"
+#include "json.hpp"
 
 using namespace std;
 using namespace std::filesystem;
@@ -111,25 +113,31 @@ json flac_parse_documentation_text(const flatbuffers::Vector<flatbuffers::Offset
   return doc.substr(0, doc.size() - 1);
 }
 
-optional<string> flatc_reflection(const path &file) {
+auto flatc_reflection(const path &file) {
   string location = std::tmpnam(nullptr);
   filesystem::create_directories(location);
 
   auto bfbs = path(location) / path(file).filename().replace_extension(".bfbs");
 
   auto arguments = vector<string>{
-    "--binary", "--bfbs-gen-embed", "--bfbs-comments", "--bfbs-builtins",
-    "-o",       location.c_str(),   "--schema",        file.string(),
+    "--binary",
+    "--bfbs-gen-embed",
+    "--bfbs-comments",
+    "--bfbs-builtins",
+    "-o",
+    location.c_str(),
+    "--schema",
+    file.string(),
   };
 
   auto status = flatc(io::get_current_executable_directory(), arguments);
   if (status != 0) {
-    return {};
+    return json(nullptr);
   }
 
   auto [exists, buffer] = io::read_file(bfbs);
   if (!exists) {
-    return {};
+    return json(nullptr);
   }
 
   auto schema_ptr = reflection::GetSchema(buffer.c_str());
@@ -405,12 +413,12 @@ optional<string> flatc_reflection(const path &file) {
     data["files"].push_back(file);
   }
 
-  return data.dump(2);
+  return data;
 }
 
 auto on_script_error(lua_State *, sol::protected_function_result pfr) {
   sol::error err = pfr;
-  spdlog::error("script error: {}", err.what());
+  spdlog::error("script error:\n{}\n\n", err.what());
   return pfr;
 }
 
@@ -466,79 +474,112 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
 #endif
 
   sol::state lua;
-  lua.open_libraries(
-    sol::lib::base, sol::lib::package, sol::lib::coroutine, sol::lib::string, sol::lib::os, sol::lib::math,
-    sol::lib::table, sol::lib::debug, sol::lib::bit32, sol::lib::io, sol::lib::ffi, sol::lib::jit, sol::lib::utf8);
+  lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::coroutine, sol::lib::string, sol::lib::os,
+    sol::lib::math, sol::lib::table, sol::lib::debug, sol::lib::bit32, sol::lib::io, sol::lib::ffi, sol::lib::jit,
+    sol::lib::utf8);
 
   // variables
 
-  lua["flatt"] = lua.create_table();
-  lua["flatt"]["executable_dir"] = io::get_current_executable_directory().string();
-  lua["flatt"]["project_dir"] = project_dir.string();
-  lua["flatt"]["project_file"] = project_file.string();
-  lua["flatt"]["argv"] = arguments;
+  lua["flatt_executable"] = io::get_current_executable().string();
+  lua["flatt_directory"] = io::get_current_executable_directory().string();
+  lua["flatt_args"] = arguments;
+  lua["flatt_argv"] = arguments;
+  lua["flatt_argc"] = arguments.size();
+
+  lua["flatt_project_directory"] = project_dir.string();
+  lua["flatt_project_root"] = project_dir.string();
+  lua["flatt_project_file"] = project_file.string();
 
   // logs
 
-  lua["log"] = lua.create_table();
-  lua["log"]["set_level"] = [&](const std::string &value) {
+  lua["flatt_logger_set_level"] = [&](const std::string &value) {
     spdlog::set_level(spdlog::level::from_str(value));
   };
-  lua["log"]["get_level"] = [&]() {
+
+  lua["flatt_logger_get_level"] = [&]() {
     return spdlog::level::to_string_view(spdlog::get_level());
   };
-  lua["log"]["trace"] = [](const std::string &msg) {
+
+  lua["flatt_logger_trace"] = [&](const std::string &msg) {
     spdlog::trace(msg);
   };
-  lua["log"]["debug"] = [](const std::string &msg) {
+
+  lua["flatt_logger_debug"] = [&](const std::string &msg) {
     spdlog::debug(msg);
   };
-  lua["log"]["info"] = [](const std::string &msg) {
+
+  lua["flatt_logger_info"] = [&](const std::string &msg) {
     spdlog::info(msg);
   };
-  lua["log"]["warn"] = [](const std::string &msg) {
+
+  lua["flatt_logger_warn"] = [&](const std::string &msg) {
     spdlog::warn(msg);
   };
-  lua["log"]["error"] = [](const std::string &msg) {
+
+  lua["flatt_logger_error"] = [&](const std::string &msg) {
     spdlog::error(msg);
   };
-  lua["log"]["critical"] = [](const std::string &msg) {
+
+  lua["flatt_logger_critical"] = [&](const std::string &msg) {
+    spdlog::critical(msg);
+  };
+
+  lua["flatt_logger_fatal"] = [&](const std::string &msg) {
     spdlog::critical(msg);
   };
 
   // files
 
-  lua["fs"] = lua.create_table();
-  lua["fs"]["exists"] = [](const string &file) {
+  lua["flatt_fs_exists"] = [&](const string &file) {
     return filesystem::exists(file);
   };
-  lua["fs"]["is_dir"] = [](const string &value) {
+
+  lua["flatt_fs_is_dir"] = [&](const string &value) {
     return (filesystem::exists(value) && filesystem::is_directory(value));
   };
-  lua["fs"]["is_file"] = [](const string &value) {
+
+  lua["flatt_fs_is_file"] = [&](const string &value) {
     return (filesystem::exists(value) && !filesystem::is_directory(value));
   };
-  lua["fs"]["read_file"] = [](const string &file) {
+
+  lua["flatt_fs_read_file"] = [&](const string &file) {
     auto [success, content] = io::read_file(file);
     return content;
   };
-  lua["fs"]["write_file"] = [](const string &file, const string &content) {
+
+  lua["flatt_fs_remove_file"] = [&](const string &file) {
+    if (lua["flatt_fs_is_file"](file)) {
+      return filesystem::remove(file);
+    } else {
+      return false;
+    }
+  };
+
+  lua["flatt_fs_write_file"] = [&](const string &file, const string &content) {
     return io::write_file(file, content);
   };
-  lua["fs"]["hash_dir"] = [](const std::string &path) {
+
+  lua["flatt_fs_write_json"] = [&](const string &file, const sol::object &content) {
+    return io::write_file(file, json(content).dump(2));
+  };
+
+  lua["flatt_fs_hash_dir"] = [&](const std::string &path) {
     return io::hash_dir(path);
   };
-  lua["fs"]["hash_file"] = [](const string &file) {
+
+  lua["flatt_fs_hash_file"] = [&](const string &file) {
     return io::hash_file(file);
   };
-  lua["fs"]["hash"] = [](const string &file) {
+
+  lua["flatt_fs_hash"] = [&](const string &file) {
     if (filesystem::is_directory(file)) {
       return io::hash_dir(file);
     } else {
       return io::hash_file(file);
     }
   };
-  lua["fs"]["list_files"] = [](const std::string &path) {
+
+  lua["flatt_fs_list_files"] = [&](const std::string &path) {
     auto files = io::list_files(path);
     auto paths = vector<string>{};
     for (auto file : files) {
@@ -547,7 +588,7 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
     return sol::as_table(paths);
   };
 
-  lua["fs"]["list_dirs"] = [](const std::string &path) {
+  lua["flatt_fs_list_dirs"] = [&](const std::string &path) {
     auto values = io::list_dirs(path);
     auto paths = vector<string>{};
     for (auto value : values) {
@@ -556,7 +597,7 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
     return sol::as_table(paths);
   };
 
-  lua["fs"]["list"] = [](const std::string &path) {
+  lua["flatt_fs_list"] = [&](const std::string &path) {
     auto paths = vector<string>{};
 
     auto values = io::list_dirs(path);
@@ -573,157 +614,334 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
 
   // string
 
-  lua["str"] = lua.create_table();
-  lua["str"]["pad_left"] = sol::overload(
-    [](const std::string &value, const int length) {
-      return str::padleft(value, length, " ");
-    },
-    [](const std::string &value, const int length, const std::string &pad) {
-      return str::padleft(value, length, pad);
-    });
-  lua["str"]["pad_right"] = sol::overload(
-    [](const std::string &value, const int length) {
-      return str::padleft(value, length, " ");
-    },
-    [](const std::string &value, const int length, const std::string &pad) {
-      return str::padright(value, length, pad);
-    });
-  lua["str"]["tokenize"] = [&](const std::string &value) {
+  lua["flatt_str_pad_left"] = [&](const std::string &value, const int length, const std::optional<std::string> &pad) {
+    auto padv = pad.has_value() ? pad.value() : " ";
+    return str::padleft(value, length, padv);
+  };
+
+  lua["flatt_str_pad_right"] = [&](const std::string &value, const int length, const std::optional<std::string> &pad) {
+    auto padv = pad.has_value() ? pad.value() : " ";
+    return str::padright(value, length, padv);
+  };
+
+  lua["flatt_str_tokenize"] = [&](const std::string &value) {
     return sol::as_table(str::tokenize(value));
   };
-  lua["str"]["split"] = sol::overload(
-    [&](const std::string &value, const std::string &delimiter) {
-      return sol::as_table(str::split(value, delimiter));
-    },
-    [&](const std::string &value, const std::string &delimiter, int limit) {
-      return sol::as_table(str::split(value, delimiter, limit));
-    });
-  lua["str"]["ends_with"] = [](const std::string &value, const std::string &match) {
+
+  auto flatt_str_split = [&](const std::string &value, const std::string &delimiter) {
+    return sol::as_table(str::split(value, delimiter));
+  };
+
+  auto flatt_str_split_limit = [&](const std::string &value, const std::string &delimiter, int limit) {
+    return sol::as_table(str::split(value, delimiter, limit));
+  };
+
+  lua["flatt_str_split"] = sol::overload(flatt_str_split, flatt_str_split_limit);
+
+  lua["flatt_str_ends_with"] = [&](const std::string &value, const std::string &match) {
     return str::ends_with(value, match);
   };
-  lua["str"]["starts_with"] = [](const std::string &value, const std::string &match) {
+
+  lua["flatt_str_starts_with"] = [&](const std::string &value, const std::string &match) {
     return str::starts_with(value, match);
   };
-  lua["str"]["trim"] = [](const std::string &value) {
+
+  lua["flatt_str_trim"] = [&](const std::string &value) {
     return str::trim_copy(value);
   };
-  lua["str"]["trim_left"] = [](const std::string &value) {
+
+  lua["flatt_str_trim_left"] = [&](const std::string &value) {
     return str::trim_left_copy(value);
   };
-  lua["str"]["trim_right"] = [](const std::string &value) {
+
+  lua["flatt_str_trim_right"] = [&](const std::string &value) {
     return str::trim_right_copy(value);
   };
-  lua["str"]["join"] = [](const sol::as_table_t<vector<string>> &parts, const string &delim = ",") {
+
+  lua["flatt_str_join"] = [&](const sol::as_table_t<vector<string>> &parts, const string &delim = ",") {
     return str::join(parts.value(), delim);
   };
-  lua["str"]["to_lower"] = [](const string &value) {
+
+  lua["flatt_str_lower"] = [&](const string &value) {
     return str::to_lower(value);
   };
-  lua["str"]["to_upper"] = [](const string &value) {
+
+  lua["flatt_str_upper"] = [&](const string &value) {
     return str::to_upper(value);
   };
-  lua["str"]["to_upper_first"] = [](const string &value) {
+
+  lua["flatt_str_upper_first"] = [&](const string &value) {
     return str::to_upper_first(value);
   };
-  lua["str"]["to_lower_first"] = [](const string &value) {
+
+  lua["flatt_str_lower_first"] = [&](const string &value) {
     return str::to_lower_first(value);
   };
-  lua["str"]["to_snake"] = [](const string &value) {
+
+  lua["flatt_str_snake"] = [&](const string &value) {
     return str::to_snake(value);
   };
-  lua["str"]["to_kebab"] = [](const string &value) {
+
+  lua["flatt_str_kebab"] = [&](const string &value) {
     return str::to_kebab(value);
   };
-  lua["str"]["to_pascal"] = [](const string &value) {
+
+  lua["flatt_str_pascal"] = [&](const string &value) {
     return str::to_pascal(value);
   };
-  lua["str"]["to_camel"] = [](const string &value) {
+
+  lua["flatt_str_camel"] = [&](const string &value) {
     return str::to_camel(value);
   };
-  lua["str"]["to_const"] = [](const string &value) {
+
+  lua["flatt_str_const"] = [&](const string &value) {
     return str::to_const(value);
   };
-  lua["str"]["to_train"] = [](const string &value) {
+
+  lua["flatt_str_train"] = [&](const string &value) {
     return str::to_train(value);
   };
-  lua["str"]["to_ada"] = [](const string &value) {
+
+  lua["flatt_str_ada"] = [&](const string &value) {
     return str::to_ada(value);
   };
-  lua["str"]["to_cobol"] = [](const string &value) {
+
+  lua["flatt_str_cobol"] = [&](const string &value) {
     return str::to_cobol(value);
   };
-  lua["str"]["to_dot"] = [](const string &value) {
+
+  lua["flatt_str_dot"] = [&](const string &value) {
     return str::to_dot(value);
   };
-  lua["str"]["to_path"] = [](const string &value) {
+
+  lua["flatt_str_path"] = [&](const string &value) {
     return str::to_path(value);
   };
-  lua["str"]["to_space"] = [](const string &value) {
+
+  lua["flatt_str_space"] = [&](const string &value) {
     return str::to_space(value);
   };
-  lua["str"]["to_capital"] = [](const string &value) {
+
+  lua["flatt_str_capital"] = [&](const string &value) {
     return str::to_capital(value);
   };
-  lua["str"]["to_cpp"] = [](const string &value) {
+
+  lua["flatt_str_cpp"] = [&](const string &value) {
     return str::to_cpp(value);
   };
 
   // templates
 
-  lua["template"] = lua.create_table();
-  lua["template"]["render"] = [](const string &source, const string &data) {
+  lua["flatt_template_render"] = [&](const std::string &file, const std::string &data) {
     auto engine = templates::engine();
-    return engine.render(source, json::parse(data));
+    return engine.render(file, json::parse(data));
   };
+
 
   // functions
 
-  lua["exec"] = [](const string &command, const sol::as_table_t<vector<string>> &arguments, const string &path = "") {
+  lua["flatt_exec"] = [](const string &command, const sol::as_table_t<vector<string>> &arguments,
+                        const string &path = "") {
     return io::shell(command, arguments.value(), path);
   };
 
-  lua["flatbuffers"] = lua.create_table();
-  lua["flatbuffers"]["compile"] = [&](const sol::as_table_t<vector<string>> &arguments) {
+  lua["flatbuffers_compile"] = [&](const sol::as_table_t<vector<string>> &arguments) {
     return flatc(project_dir, arguments.value());
   };
-  lua["flatbuffers"]["reflect"] = [&](const string &schema) -> auto {
-    return flatc_reflection(filesystem::absolute(schema));
+  lua["flatbuffers_reflect"] = [&](const string &schema) -> auto {
+    return to_sol(lua, flatc_reflection(filesystem::absolute(schema)));
   };
 
-  lua.safe_script(
-    R"(
-      if package.path ~= "" then
-        package.path = package.path .. ";"
-      end
-      package.path = package.path .. ";" .. flatt.project_dir .. "/?.lua;"
-    )",
-    on_script_error);
-
-  auto has_tl = lua
-                  .safe_script(R"(
-    local __p__, __m__ = pcall(require, 'tl');
-    if __p__ then
-      return true
-    else
-      return false
-    end
-  )")
-                  .get<bool>();
-#include "bootstrap/tl.lua.h"
-
-  if (!has_tl) {
-    lua.require_script("tl", tl_lua_str);
-  }
+  register_embedded_modules(lua);
 
   lua["__main__"] = project_file.string();
 
-  auto result = lua.safe_script(
-    R"(
-      require("tl").loader()
-      require(__main__)
+  // TODO: move all this shit to modules folder
+
+  auto result = lua.safe_script(R"(
+    if package.path ~= "" then
+      package.path = package.path .. ";"
+    end
+    package.path = package.path .. ";" .. flatt_project_directory .. "/?.lua;"
+  )",
+    on_script_error);
+  if (!result.valid()) {
+    return -1;
+  }
+
+  result = lua.safe_script(R"(
+    do
+      local __cfg = require("luarocks.core.cfg")
+      __cfg.init()
+
+      local __fs = require("luarocks.fs")
+      __fs.init()
+    end
+  )",
+    on_script_error);
+  if (!result.valid()) {
+    return -1;
+  }
+
+  result = lua.safe_script(R"(
+    function luarocks_supressed(callback, ...)
+
+      local fs = require("flatt.fs")
+
+      local _stderr = io.stderr
+      local _stdout = io.stdout
+
+      local _dump = io.open(".luarocks.log", "w")
+      io.stdout = _dump
+      io.stderr = _dump
+
+      callback(...)
+
+      io.stdout = _stdout
+      io.stderr = _stderr
+
+      _dump:close()
+
+      fs.remove_file(".luarocks.log")
+    end
+
+    function luarocks_command(name, args)
+      luarocks_supressed(function()
+        local cmd = require("luarocks.cmd")
+        cmd.run_command("description", { init = "luarocks.cmd."..name }, "", name, table.unpack(args))
+      end)
+    end
+
+    local __luarocks__ = false
+
+    _G["rock"] = function()
+      error("luarocks not enabled. call luarocks_enable() first")
+    end
+
+    function luarocks_enable()
+      local fs = require("flatt.fs")
+      local log = require("flatt.logger")
+      local locks = require("luarocks.deplocks")
+      local persist = require("luarocks.persist")
+
+      luarocks_command("init", { "--no-wrapper-scripts", "--no-gitignore" })
+
+      log.info("Enabling luarocks ... ok")
+
+      local ok = false
+      local rocklist = {
+        dependencies = {}
+      }
+      if fs.is_file("luarocks.lock") then
+        ok = locks.load("flatt_project", flatt_project_directory)
+        if ok then
+          for k, v in locks.each("dependencies") or pairs({}) do
+            rocklist.dependencies[k] = v
+          end
+        end
+      else
+        ok = locks.init("flatt_project", flatt_project_directory)
+      end
+
+      print("...")
+
+      print(package.path)
+      print(package.cpath)
+
+      if not rocklist then
+        rocklist = {
+          dependencies = {}
+        }
+      else
+        if not rocklist.dependencies then
+          rocklist.dependencies = {}
+        end
+      end
+
+      print("rocklist", rocklist.dependencies)
+      for k,v in pairs(rocklist.dependencies) do
+        print(k, v)
+      end
+
+      _G["rock"] = function (name)
+        local fs = require("flatt.fs")
+        local project = require("flatt.project")
+
+        if name ~= nil then
+          local __package__, __module__ = pcall(require, name)
+          if __package__ then
+            print("module found")
+            return __module__
+          end
+
+          local modname = name
+          local modname_end = string.find(name, "\\.")
+
+          if modname_end then
+            modname = name:sub(1, modname_end - 1)
+          end
+
+          local __package__, __module__ = pcall(require, modname)
+          if __package__ then
+            return __module__[submodule]
+          end
+
+          --luarocks_supressed(function()
+            local install = require("luarocks.cmd.install")
+            local depname, depver = install.command({
+              rock = name,
+              pin = true,
+            })
+
+            log.info("Installed "..depname.." (version: "..depver..") ")
+          --end)
+
+          rocklist["dependencies"][depname] = depver
+
+          persist.save_as_module("luarocks.lock", rocklist)
+
+          return require(modname)
+        else
+          return nil
+        end
+      end
+
+    end
+
     )",
     on_script_error);
+  if (!result.valid()) {
+    return -1;
+  }
 
+  result = lua.safe_script(R"(
+    do
+      local lr_path = require("luarocks.path")
+      local lr_util = require("luarocks.util")
+      local lr_lpath, lr_lcpath = lr_path.package_paths()
+
+      package.path = lr_util.LQ(lr_lpath..";")..package.path
+      package.cpath = lr_util.LQ(lr_lcpath..";")..package.cpath
+
+      print(package.path)
+      print(package.cpath)
+    end
+  )",
+    on_script_error);
+  if (!result.valid()) {
+    return -1;
+  }
+
+  result = lua.safe_script(R"(
+    require("luarocks.loader")
+    require("tl").loader()
+  )",
+    on_script_error);
+  if (!result.valid()) {
+    return -1;
+  }
+
+  result = lua.safe_script(R"(return require(__main__))", on_script_error);
   if (!result.valid()) {
     return -1;
   }
@@ -736,6 +954,7 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
 }
 
 int main(int argc, const char *argv[]) {
+
   auto console = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
   auto logger = std::make_shared<spdlog::logger>("console", console);
   logger->set_level(spdlog::level::trace);

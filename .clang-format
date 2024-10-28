@@ -1,5 +1,7 @@
 BasedOnStyle: Microsoft
-AlignAfterOpenBracket: AlwaysBreak
+AlignAfterOpenBracket: DontAlign
+PenaltyBreakBeforeFirstCallParameter: 9999
+AllowAllArgumentsOnNextLine: true
 ContinuationIndentWidth: 2
 DerivePointerAlignment: true
 IndentWidth: 2

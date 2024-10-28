@@ -1,1 +1,4 @@
-.flatt
+/*/.flatt
+/*/lua_modules
+/*/.luarocks
+/*/*.rockspec
