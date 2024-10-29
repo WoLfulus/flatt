@@ -971,7 +971,7 @@ int main(int argc, const char *argv[]) {
   std::copy(argv, argv + argc, std::back_inserter(arguments));
 
   if (arguments.size() < 2) {
-    arguments.push_back("./flatt");
+    arguments.push_back(".");
   }
 
   auto file = arguments[1];
