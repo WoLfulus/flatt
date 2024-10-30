@@ -1,6 +1,6 @@
 {
   "name": "flatt",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Flatbuffers scriptable code generation tool.",
   "keywords": [
     "flatbuffers",
@@ -32,8 +32,7 @@
   ],
   "scripts": {
     "build": "just pack-it-up",
-    "publish:local": "npm uninstall -g flatt && npm install && npm link",
-    "prepare": "npm run build"
+    "prepare": "pnpm run build"
   },
   "dependencies": {
     "execa": "^9.4.1"

@@ -100,10 +100,12 @@ build config="choose":
 
 [windows]
 @pack-it-up:
-  just configure all
-  just build all
-  wsl --exec bash -i -c "just configure all"
-  wsl --exec bash -i -c "just build all"
+  just configure release
+  just build release
+  wsl --exec bash -i -c "just configure release"
+  wsl --exec bash -i -c "just build release"
+  pnpm uninstall -g flatt
+  pnpm link -g
 
 @run-example name="choose":
   @just {{ if name == "choose" { "run-example-choose" } else { "run-example-project" } }} {{ name }}
@@ -118,4 +120,4 @@ build config="choose":
 
 [private]
 @run-example-project name:
-  ./dist/win-x64-debug/flatt.exe "./examples/{{ name }}"
+  ./dist/win-x64-release/flatt.exe "./examples/{{ name }}"

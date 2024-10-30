@@ -910,8 +910,8 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
       local lr_util = require("luarocks.util")
       local lr_lpath, lr_lcpath = lr_path.package_paths()
 
-      package.path = lr_util.LQ(lr_lpath..";")..package.path
-      package.cpath = lr_util.LQ(lr_lcpath..";")..package.cpath
+      package.path = lr_lpath..";"..package.path
+      package.cpath = lr_lcpath..";"..package.cpath
     end
   )",
     on_script_error);
@@ -928,7 +928,7 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
     return -1;
   }
 
-  result = lua.safe_script(R"(return require(__main__))", on_script_error);
+  result = lua.safe_script("return require(__main__)", on_script_error);
   if (!result.valid()) {
     return -1;
   }
