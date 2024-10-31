@@ -51,6 +51,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 find_package(sol2 CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE sol2)
 
+find_package(Boost CONFIG REQUIRED COMPONENTS process)
+target_link_libraries(${PROJECT_NAME} PRIVATE Boost::process)
+
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt-header-only)

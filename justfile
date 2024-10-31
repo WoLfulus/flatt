@@ -100,6 +100,7 @@ build config="choose":
 
 [windows]
 @pack-it-up:
+  deno run -A ./modules.ts
   just configure release
   just build release
   wsl --exec bash -i -c "just configure release"

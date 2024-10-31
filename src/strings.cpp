@@ -24,6 +24,10 @@ string str::skip(string str, int length) {
   return str.substr(str.length() - length);
 }
 
+bool str::contains(const string &stack, const string &needle) {
+  return stack.find(needle) != string::npos;
+}
+
 string str::take(string str, int length) {
   if (length < 0) {
     return "";
@@ -319,35 +323,31 @@ string str::to_cpp(const string &value) {
 
 void str::trim_left(string &s) {
   s.erase(s.begin(), find_if(s.begin(), s.end(), [](unsigned char ch) {
-            return !isspace(ch);
-          }));
+    return !isspace(ch);
+  }));
 }
 
 void str::trim_left(string &s, string chars) {
   s.erase(s.begin(), find_if(s.begin(), s.end(), [&](unsigned char ch) {
-            return chars.find(ch) != string::npos;
-          }));
+    return chars.find(ch) != string::npos;
+  }));
 }
 
 void str::trim_right(string &s) {
-  s.erase(
-    find_if(
-      s.rbegin(), s.rend(),
-      [](unsigned char ch) {
-        return !isspace(ch);
-      })
-      .base(),
+  s.erase(find_if(s.rbegin(), s.rend(),
+            [](unsigned char ch) {
+              return !isspace(ch);
+            })
+            .base(),
     s.end());
 }
 
 void str::trim_right(string &s, string chars) {
-  s.erase(
-    find_if(
-      s.rbegin(), s.rend(),
-      [&](unsigned char ch) {
-        return chars.find(ch) != string::npos;
-      })
-      .base(),
+  s.erase(find_if(s.rbegin(), s.rend(),
+            [&](unsigned char ch) {
+              return chars.find(ch) != string::npos;
+            })
+            .base(),
     s.end());
 }
 

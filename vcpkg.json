@@ -11,6 +11,7 @@
     "nlohmann-json",
     "pkgconf",
     "sol2",
-    "spdlog"
+    "spdlog",
+    "boost-process"
   ]
 }

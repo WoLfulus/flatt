@@ -1,6 +1,6 @@
 {
   "name": "flatt",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Flatbuffers scriptable code generation tool.",
   "keywords": [
     "flatbuffers",

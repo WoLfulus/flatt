@@ -22,9 +22,13 @@ namespace io {
   std::vector<std::filesystem::path> list_dirs(const std::filesystem::path& dir);
   std::vector<std::filesystem::path> list_files(const std::filesystem::path& dir);
 
-  int shell(std::string command, std::vector<std::string> args, std::filesystem::path p = "",
-    std::filesystem::path output = "");
+  struct shell_output {
+    int code;
+    std::string out;
+    std::string err;
+  };
 
-  std::string shell_output(std::string command, std::vector<std::string> args, std::filesystem::path p = "");
+  io::shell_output shell(std::string command, std::vector<std::string> args, std::filesystem::path p = "");
+
 
 } // namespace io

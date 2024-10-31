@@ -13,6 +13,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <cstdlib>
+#include <cstdio>
+
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -20,7 +23,10 @@
 #include <numeric>
 #include <filesystem>
 
+#include <fmt/ranges.h>
+
 #include <spdlog/spdlog.h>
+#include <boost/process.hpp>
 
 #include "./io.hpp"
 #include "./hash.hpp"
@@ -149,38 +155,43 @@ vector<path> io::list_files(const path& dir) {
   return result;
 }
 
-int io::shell(string command, vector<string> args, path p, path output) {
-  if (p.empty()) {
-    p = get_file_directory(command);
-  }
+io::shell_output io::shell(string command, vector<string> args, path p) {
+  namespace bp = boost::process;
 
-  auto finalCommand = "\"" + command + "\" ";
-  if (!p.empty()) {
-    finalCommand = "cd \"" + p.string() + "\" && " + finalCommand;
+#ifdef WIN32
+  if (!str::ends_with(str::to_lower(command), ".exe")) {
+    command += ".exe";
   }
+#endif
 
-  auto finalArgs = accumulate(next(args.begin()), args.end(), args[0], [](auto a, auto b) {
-    if (b.find(' ') != string::npos || b == "") {
-      b = "\"" + b + "\"";
+  if (filesystem::absolute(command) != command) {
+    auto local = get_current_executable_directory() / command;
+    if (std::filesystem::exists(local)) {
+      command = local.string();
+    } else {
+      command = bp::search_path(command).string();
     }
-    return a + " " + b;
-  });
-
-  auto final = finalCommand + finalArgs;
-  spdlog::trace("");
-  spdlog::trace(" shell: {}", final);
-  spdlog::trace("");
-
-  if (!output.empty()) {
-    return system((final + " > \"" + output.string() + "\"").c_str());
   }
 
-  return system(final.c_str());
-}
+  if (p.empty()) {
+    p = current_path();
+  }
 
-string io::shell_output(string command, vector<string> args, path p) {
-  std::string file = std::tmpnam(nullptr);
-  io::shell(command, args, p, file);
-  auto [_, output] = io::read_file(file);
-  return output;
+  int code = 0;
+  bp::ipstream pstdout;
+  bp::ipstream pstderr;
+
+  spdlog::trace("executing: {} {}", command, fmt::join(args, " "));
+  spdlog::trace("  > cwd: {}", p.string());
+
+  code = bp::system(command, bp::args = args, bp::std_out > pstdout, bp::std_err > pstderr, bp::start_dir = p.string());
+
+  std::ostringstream sstdout, sstderr;
+
+  pstdout >> sstdout.rdbuf();
+  pstderr >> sstderr.rdbuf();
+
+  spdlog::trace("  > exit: {}", code);
+
+  return { code, sstdout.str(), sstderr.str() };
 }

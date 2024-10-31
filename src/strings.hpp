@@ -27,6 +27,8 @@ namespace str {
   std::vector<std::string> split(std::string value, std::string delimiter, int limit = 0);
   std::vector<std::string> tokenize(std::string value);
 
+  bool contains(const std::string &value, const std::string &subject);
+
   std::string join(const std::vector<std::string> parts, const std::string &delim);
 
   std::string to_lower(const std::string &value);

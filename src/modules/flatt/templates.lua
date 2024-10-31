@@ -1,6 +1,6 @@
 local templates = {}
 
-local json = rock("lunajson")
+local json = luarocks_require("lunajson")
 
 function templates.render_json(template, data)
   return flatt_template_render(template, data)

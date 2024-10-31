@@ -70,7 +70,9 @@ path find_flatc() {
 }
 
 int flatc(const path &working_dir, const vector<string> arguments) {
-  return io::shell(find_flatc().string(), arguments, working_dir);
+  auto res = io::shell(find_flatc().string(), arguments, working_dir);
+  spdlog::trace("flatc({})\n----------\n{}\n----------\n{}\n----------\n", res.code, res.out, res.err);
+  return res.code;
 }
 
 json flac_parse_attributes(const flatbuffers::Vector<flatbuffers::Offset<reflection::KeyValue>> *list) {
@@ -466,7 +468,6 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
 
   project_file = "./" + filesystem::relative(project_file, project_dir).string();
 
-
 #ifdef _WIN32
   SetCurrentDirectory(project_dir.string().c_str());
 #else
@@ -737,17 +738,23 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
     return engine.render(file, json::parse(data));
   };
 
-
   // functions
 
-  lua["flatt_exec"] = [](const string &command, const sol::as_table_t<vector<string>> &arguments,
-                        const string &path = "") {
-    return io::shell(command, arguments.value(), path);
+  lua["flatt_exec"] = [&](const string &command, const sol::as_table_t<vector<string>> &arguments,
+                        const std::optional<string> &path) {
+    auto res = io::shell(command, arguments.value(), path.has_value() ? path.value() : "");
+    auto table = lua.create_table();
+    table["code"] = res.code;
+    table["success"] = res.code == 0;
+    table["output"] = res.out;
+    table["error"] = res.err;
+    return table;
   };
 
   lua["flatbuffers_compile"] = [&](const sol::as_table_t<vector<string>> &arguments) {
     return flatc(project_dir, arguments.value());
   };
+
   lua["flatbuffers_reflect"] = [&](const string &schema) -> auto {
     return to_sol(lua, flatc_reflection(filesystem::absolute(schema)));
   };
@@ -771,20 +778,25 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
 
   result = lua.safe_script(R"(
     do
+      local loader = require("luarocks.loader")
+
       local __cfg = require("luarocks.core.cfg")
-      __cfg.project_dir = flatt_project_root
-      __cfg.init()
+      __cfg.init({
+        project_dir = flatt_project_root
+      })
 
       local __fs = require("luarocks.fs")
       __fs.init()
-    end
-  )",
-    on_script_error);
-  if (!result.valid()) {
-    return -1;
-  }
 
-  result = lua.safe_script(R"(
+      local lr_path = require("luarocks.path")
+      local lr_util = require("luarocks.util")
+
+      lr_path.use_tree(flatt_project_root.."/lua_modules")
+      lr_path.add_to_package_paths(flatt_project_root.."/lua_modules")
+
+      local cmd = require("luarocks.cmd")
+    end
+
     function luarocks_supressed(callback, ...)
 
       local fs = require("flatt.fs")
@@ -792,42 +804,52 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
       local _stderr = io.stderr
       local _stdout = io.stdout
 
-      local _dump = io.open(".luarocks.log", "w")
-      io.stdout = _dump
-      io.stderr = _dump
-
-      callback(...)
+      local result = callback(...)
 
       io.stdout = _stdout
       io.stderr = _stderr
 
-      _dump:close()
-
-      fs.remove_file(".luarocks.log")
+      return result
     end
 
     function luarocks_command(name, args)
-      luarocks_supressed(function()
+      args = args or {}
+      return luarocks_supressed(function()
         local cmd = require("luarocks.cmd")
-        cmd.run_command("description", { init = "luarocks.cmd."..name }, "", name, table.unpack(args))
+        return flatt_exec("luarocks", { name, table.unpack(args) })
+      end)
+    end
+
+    function luarocks_command_inprocess(name, args)
+      args = args or {}
+      return luarocks_supressed(function()
+        local cmd = require("luarocks.cmd")
+        return cmd.run_command("description", { [name] = "luarocks.cmd."..name }, "luarocks.cmd.external", name, table.unpack(args))
       end)
     end
 
     local __luarocks__ = false
 
-    _G["rock"] = function()
+    _G["luarocks_require"] = function()
       error("luarocks not enabled. call luarocks_enable() first")
     end
 
     function luarocks_enable()
       local fs = require("flatt.fs")
       local log = require("flatt.logger")
+      local strings = require("flatt.strings")
       local locks = require("luarocks.deplocks")
       local persist = require("luarocks.persist")
 
-      luarocks_command("init", { "--no-wrapper-scripts", "--no-gitignore" })
+      log.info("Enabling luarocks ...")
 
-      log.info("Enabling luarocks ... ok")
+      if not flatt_exec("luarocks", { "init", "--no-wrapper-scripts", "--no-gitignore", "--lua-versions=5.4", "--project-tree="..flatt_project_root.."/lua_modules" }) then
+        error("Failed to initialize luarocks")
+      end
+
+      luarocks_supressed(function()
+        -- luarocks_command_inprocess("path", {})
+      end)
 
       local ok = false
       local rocklist = {
@@ -854,48 +876,66 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
         end
       end
 
-      _G["rock"] = function (name)
+      _G["luarocks_require"] = function (name, modname)
         local fs = require("flatt.fs")
         local project = require("flatt.project")
 
-        if name ~= nil then
-          local __package__, __module__ = pcall(require, name)
-          if __package__ then
-            return __module__
-          end
+        if not name then
+          error("luarocks_require() requires a module name")
+        end
 
-          local modname = name
+        log.trace("Trying to require(\""..name.."\") ")
+        local __package__, __module__ = pcall(require, name)
+        if __package__ then
+          return __module__
+        end
+        log.trace("  ...failed")
+
+        if not modname then
+          modname = name
           local modname_end = string.find(name, "\\.")
-
           if modname_end then
             modname = name:sub(1, modname_end - 1)
           end
 
-          local __package__, __module__ = pcall(require, modname)
-          if __package__ then
-            return __module__[submodule]
+          if name ~= modname then
+            log.trace("Trying to require(\""..modname.."\") ")
+            local __package__, __module__ = pcall(require, modname)
+            if __package__ then
+              return __module__
+            end
+            log.trace("  ...failed")
           end
+        end
 
-          --luarocks_supressed(function()
-            local install = require("luarocks.cmd.install")
-            local depname, depver = install.command({
-              rock = name,
-              pin = true,
-            })
+        log.trace("Trying to install "..modname)
 
-            log.info("Installed "..depname.." (version: "..depver..") ")
-          --end)
-
-          rocklist["dependencies"][depname] = depver
-
-          persist.save_as_module("luarocks.lock", rocklist)
-
-          return require(modname)
-        else
+        function luarocks_module_version(name)
+          local ret = luarocks_command("show", { modname, "--mversion", "--project-tree="..flatt_project_root.."/lua_modules" })
+          if ret.success then
+            return strings.trim(ret.out)
+          end
           return nil
         end
-      end
 
+        local depname = modname
+        local depver = luarocks_module_version(depname)
+
+        if depver == nil then
+          local ret = luarocks_command("install", { modname, "--pin", "--project-tree="..flatt_project_root.."/lua_modules" })
+          if not ret.success then
+            log.error("Failed to install "..modname.." (exit = "..ret.code..") ")
+            return nil
+          else
+            depver = luarocks_module_version(depname)
+            log.info("Installed "..depname.." (version: "..depver..") ")
+            rocklist["dependencies"][depname] = depver
+            persist.save_as_module("luarocks.lock", rocklist)
+          end
+        end
+
+        return require(modname)
+      end
     end
 
     )",
@@ -905,30 +945,10 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
   }
 
   result = lua.safe_script(R"(
-    do
-      local lr_path = require("luarocks.path")
-      local lr_util = require("luarocks.util")
-      local lr_lpath, lr_lcpath = lr_path.package_paths()
-
-      package.path = lr_lpath..";"..package.path
-      package.cpath = lr_lcpath..";"..package.cpath
-    end
-  )",
-    on_script_error);
-  if (!result.valid()) {
-    return -1;
-  }
-
-  result = lua.safe_script(R"(
-    require("luarocks.loader")
     require("tl").loader()
+    return require(__main__)
   )",
     on_script_error);
-  if (!result.valid()) {
-    return -1;
-  }
-
-  result = lua.safe_script("return require(__main__)", on_script_error);
   if (!result.valid()) {
     return -1;
   }
