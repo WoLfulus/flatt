@@ -171,7 +171,7 @@ auto flatc_reflection(const path &file) {
     (schema.advanced_features() & reflection::AdvancedFeatures::AdvancedUnionFeatures) != 0;
   data["advanced_features"]["optional_scalars"] =
     (schema.advanced_features() & reflection::AdvancedFeatures::OptionalScalars) != 0;
-  data["advanced_features"]["defaualt_vectors_and_strings"] =
+  data["advanced_features"]["default_vectors_and_strings"] =
     (schema.advanced_features() & reflection::AdvancedFeatures::DefaultVectorsAndStrings) != 0;
 
   auto type_name = [&](const reflection::BaseType type) {
@@ -913,14 +913,13 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
         function luarocks_module_version(name)
           local ret = luarocks_command("show", { modname, "--mversion", "--project-tree="..flatt_project_root.."/lua_modules" })
           if ret.success then
-            return strings.trim(ret.out)
+            return strings.trim(ret.output)
           end
           return nil
         end
 
         local depname = modname
         local depver = luarocks_module_version(depname)
-
         if depver == nil then
           local ret = luarocks_command("install", { modname, "--pin", "--project-tree="..flatt_project_root.."/lua_modules" })
           if not ret.success then
@@ -928,9 +927,11 @@ int run_project(const path &entrypoint, const vector<string> &arguments) {
             return nil
           else
             depver = luarocks_module_version(depname)
-            log.info("Installed "..depname.." (version: "..depver..") ")
-            rocklist["dependencies"][depname] = depver
-            persist.save_as_module("luarocks.lock", rocklist)
+            if depver then
+              log.info("Installed "..depname.." (version: "..depver..") ")
+              rocklist["dependencies"][depname] = depver
+              persist.save_as_module("luarocks.lock", rocklist)
+            end
           end
         end
 
